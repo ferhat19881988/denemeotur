@@ -1,3 +1,4 @@
+<!-- deneme-ogrenci-oturma-plani.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -5,17 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Deneme Öğrenci Oturma Planı</title>
 <style>
-  /* ---------- Tema: Koyu (varsayılan) ---------- */
   :root{
     --bg:#0b1220; --card:#121a2b; --muted:#8aa0b3; --text:#e8f1ff; --accent:#4da3ff; --accent-2:#28c997;
-    --danger:#ff6b6b; --warn:#ffd166; --ok:#51cf66; --border:#1e2a44; --field:#0d1627;
-    --table-h:#a7b8cd;
+    --danger:#ff6b6b; --warn:#ffd166; --ok:#51cf66; --border:#1e2a44; --field:#0d1627; --table-h:#a7b8cd;
   }
-  /* ---------- Tema: Açık ---------- */
   .theme-light{
     --bg:#f7f9fc; --card:#ffffff; --muted:#5c6b7a; --text:#0a1728; --accent:#1666d3; --accent-2:#0ea37a;
-    --danger:#d64545; --warn:#b88900; --ok:#2f9e44; --border:#dbe3ef; --field:#f1f5fb;
-    --table-h:#2b3a4b;
+    --danger:#d64545; --warn:#b88900; --ok:#2f9e44; --border:#dbe3ef; --field:#f1f5fb; --table-h:#2b3a4b;
   }
 
   *{box-sizing:border-box}
@@ -45,20 +42,16 @@
   th,td{border-bottom:1px dashed var(--border);padding:8px 6px;text-align:left}
   th{color:var(--table-h)}
   .inline{display:inline-flex;gap:8px;align-items:center}
-  .chip{background:var(--field);border:1px solid var(--border);padding:6px 8px;border-radius:10px}
   .list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
   .student{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--field);cursor:grab}
   .class-col{min-width:260px}
   .drop{min-height:80px;border:2px dashed var(--border);border-radius:12px;padding:8px}
-  .success{color:var(--ok)} .warn{color:var(--warn)} .danger{color:var(--danger)}
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:.5rem 0}
   .right{margin-left:auto}
-  .spaced>*{margin-right:8px}
   .kpi{display:flex;gap:12px;flex-wrap:wrap}
   .kpi .card{min-width:180px}
   .hidden{display:none!important}
 
-  /* Yazdırma */
   @media print{
     body{background:#fff;color:#000}
     .no-print{display:none!important}
@@ -173,7 +166,7 @@
   <section id="atama" class="card hidden">
     <h2>Atama & Sürükle-Bırak</h2>
     <div class="toolbar">
-      <div class="spaced">
+      <div>
         <label class="inline">Düzey:
           <select id="filterLevel">
             <option value="8">8</option><option value="7">7</option><option value="6">6</option><option value="5">5</option>
@@ -220,13 +213,13 @@
 </div>
 
 <script>
-/* ------------------------- UYGULAMA DURUMU ------------------------- */
+/* ===================== DURUM ===================== */
 const state = {
   cfg: {
     sheetId: "1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw",
     tabStudents: "Deneme",
     tabTeachers: "Ogretmenler",
-    theme: "dark", // "dark" | "light"
+    theme: "dark",
   },
   students: [],
   teachers: [],
@@ -234,18 +227,29 @@ const state = {
   calendar: [],
 };
 
-/* ----------------------------- ARAÇLAR ----------------------------- */
+/* ===================== ARAÇLAR ===================== */
+// gviz verisini al
 async function fetchSheet(spreadsheetId, sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url, {cache:"no-store"});
   if(!res.ok) throw new Error("E-Tablo okunamadı. Paylaşım yetkilerini kontrol edin.");
   const txt = await res.text();
   const json = JSON.parse(txt.substring(txt.indexOf("(")+1, txt.lastIndexOf(")")));
-  const cols = json.table.cols.map(c => (c.label||"").toLowerCase());
+  const cols = json.table.cols.map(c => (c.label ?? "") );
   const rows = json.table.rows.map(r => r.c?.map(c => (c? c.v : "")) || []);
   return {cols, rows};
 }
-function normalizeHeader(h){ return (h||"").toString().trim().toLowerCase(); }
+// Türkçe karakter/boşluk/işaret farklarını normalize et (yalnızca 'no','adsoyad','sinif' anahtarlarını arıyoruz)
+function normalizeKey(s){
+  return (s||"")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")   // diakritikleri at
+    .replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ı/g,"i").replace(/İ/g,"i")
+    .replace(/ç/g,"c").replace(/ö/g,"o").replace(/ü/g,"u")
+    .replace(/\s|[^a-z0-9]/g,""); // boşluk ve noktalama
+}
 function lastWord(s){ const p=(s||"").toString().trim().split(/\s+/); return p[p.length-1]||""; }
 function gradeOf(sinif){ const m = (sinif||"").toString().trim().match(/^(\d)/); return m? m[1] : ""; }
 function uid(){ return Math.random().toString(36).slice(2,9); }
@@ -255,7 +259,7 @@ function loadLocal(){
   try{ const obj = JSON.parse(s); Object.assign(state, obj); return true; }catch{ return false; }
 }
 
-/* ------------------------------ UI NAV ----------------------------- */
+/* ===================== NAV ===================== */
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -268,29 +272,54 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
   });
 });
 
-/* --------------------------- VERİ YÜKLEME -------------------------- */
+/* ===================== VERİ ===================== */
 async function loadData(){
   const sid = document.getElementById("sheetId").value.trim() || state.cfg.sheetId;
   const tabS = document.getElementById("sheetStudentTab").value.trim() || "Deneme";
   const tabT = document.getElementById("sheetTeacherTab").value.trim() || "Ogretmenler";
   state.cfg.sheetId=sid; state.cfg.tabStudents=tabS; state.cfg.tabTeachers=tabT;
 
+  // ---- Öğrenciler
   const s = await fetchSheet(sid, tabS);
-  const iNo = s.cols.findIndex(c=>["no","öğrenci no","ogrno","numara"].includes(normalizeHeader(c)));
-  const iAd = s.cols.findIndex(c=>["adsoyad","ad soyad","ad_soyad","adi soyadi","adı soyadı"].includes(normalizeHeader(c)));
-  const iSn = s.cols.findIndex(c=>["sinif","sınıf"].includes(normalizeHeader(c)));
+
+  // 1) Önce label'lara bak
+  let labels = s.cols.map(c=>normalizeKey(c));
+  // 2) Gerekli başlıklar bulunamadıysa, ilk satırı başlık say
+  const needKeys = ["no","adsoyad","sinif"];
+  const hasAll = needKeys.every(k => labels.includes(k));
+  let rows = s.rows.slice();
+  if(!hasAll && rows.length){
+    const firstRowKeys = rows[0].map(v=>normalizeKey(v));
+    if(needKeys.every(k => firstRowKeys.includes(k))){
+      labels = firstRowKeys;
+      rows = rows.slice(1); // başlık satırını düş
+    }
+  }
+  const iNo = labels.indexOf("no");
+  const iAd = labels.indexOf("adsoyad");
+  const iSn = labels.indexOf("sinif");
   if(iNo<0||iAd<0||iSn<0) throw new Error("Deneme sayfasında NO, ADSOYAD, SINIF sütunlarını bulunamadı.");
-  state.students = s.rows.map(r=>({
+
+  state.students = rows.map(r=>({
     no: (r[iNo]??"").toString().trim(),
     adsoyad: (r[iAd]??"").toString().trim(),
     sinif: (r[iSn]??"").toString().trim(),
   })).filter(x=>x.no && x.adsoyad);
 
+  // ---- Öğretmenler
   const t = await fetchSheet(sid, tabT);
-  const iId = t.cols.findIndex(c=>["id"].includes(normalizeHeader(c)));
-  const iNm = t.cols.findIndex(c=>["ogretmen_adi","öğretmen_adı","ogretmen adi","ad"].includes(normalizeHeader(c)));
-  const iBr = t.cols.findIndex(c=>["brans","branş"].includes(normalizeHeader(c)));
-  state.teachers = t.rows.map(r=>({
+  let tLabels = t.cols.map(c=>normalizeKey(c));
+  let tRows = t.rows.slice();
+  const tNeed = ["id","ogretmenadi","brans"];
+  const tHasAll = tNeed.every(k=>tLabels.includes(k));
+  if(!tHasAll && tRows.length){
+    const first = tRows[0].map(v=>normalizeKey(v));
+    if(tNeed.every(k=>first.includes(k))){ tLabels=first; tRows=tRows.slice(1); }
+  }
+  const iId = tLabels.indexOf("id");
+  const iNm = tLabels.indexOf("ogretmenadi");
+  const iBr = tLabels.indexOf("brans");
+  state.teachers = tRows.map(r=>({
     id:(r[iId]??"").toString().trim(),
     ad:(r[iNm]??"").toString().trim(),
     brans:(r[iBr]??"").toString().trim(),
@@ -299,19 +328,16 @@ async function loadData(){
   document.getElementById("kpiStd").textContent = state.students.length;
   document.getElementById("kpiTch").textContent = state.teachers.length;
   document.getElementById("kpiLoad").textContent = new Date().toLocaleString();
-  renderSamples();
-  saveLocal();
+  renderSamples(); saveLocal();
 }
 function renderSamples(){
-  const sampleStd = document.getElementById("sampleStd");
-  sampleStd.innerHTML = "";
+  const sampleStd = document.getElementById("sampleStd"); sampleStd.innerHTML = "";
   state.students.slice(0,20).forEach(st=>{
     const el = document.createElement("div");
     el.className="student"; el.textContent = `${st.no} • ${st.adsoyad} • ${st.sinif}`;
     sampleStd.appendChild(el);
   });
-  const sampleTch = document.getElementById("sampleTch");
-  sampleTch.innerHTML="";
+  const sampleTch = document.getElementById("sampleTch"); sampleTch.innerHTML="";
   state.teachers.slice(0,20).forEach(tc=>{
     const el=document.createElement("div");
     el.className="student"; el.textContent = `${tc.id} • ${tc.ad} • ${tc.brans}`;
@@ -338,7 +364,7 @@ document.getElementById("btnLoadCfg").onclick=()=>{
 };
 document.getElementById("sheetId").value = state.cfg.sheetId;
 
-/* --------------------------- SINIF YÖNETİMİ ------------------------ */
+/* ===================== SINIF ===================== */
 function renderClassTable(){
   const tb = document.getElementById("classTbody"); tb.innerHTML="";
   state.classes.forEach(cls=>{
@@ -376,7 +402,7 @@ document.getElementById("btnClearClass").onclick=()=>{
   if(confirm("Tüm sınıflar silinsin mi?")){ state.classes=[]; renderClassTable(); renderAssignArea(); saveLocal(); }
 };
 
-/* ---------------------------- TAKVİM ------------------------------- */
+/* ===================== TAKVİM ===================== */
 document.getElementById("btnSaveExam").onclick=()=>{
   const date = document.getElementById("examDate").value;
   const level = parseInt(document.getElementById("examLevel").value);
@@ -394,7 +420,7 @@ function renderCalendar(){
   });
 }
 
-/* ---------------------------- ATAMA ------------------------------- */
+/* ===================== ATAMA ===================== */
 document.getElementById("filterLevel").onchange=()=>renderAssignArea();
 document.getElementById("sortBy").onchange=()=>renderAssignArea();
 
@@ -509,7 +535,7 @@ document.getElementById("btnShuffle").onclick=()=>{
   renderAssignArea(); saveLocal();
 };
 
-/* ---------------------------- YAZDIRMA ----------------------------- */
+/* ===================== YAZDIR ===================== */
 function printLists(){
   const root = document.getElementById("printRoot"); root.innerHTML=""; root.classList.remove("hidden");
   state.classes.forEach(cls=>{
@@ -568,7 +594,7 @@ function teacherName(id){
   return t? t.ad : null;
 }
 
-/* -------------------------- TEMA ANAHTARLAYICI --------------------- */
+/* ===================== TEMA ===================== */
 const btnTheme = document.getElementById("btnTheme");
 btnTheme.addEventListener("click", ()=>{
   state.cfg.theme = state.cfg.theme==="light" ? "dark" : "light";
@@ -584,7 +610,7 @@ function applyTheme(){
   }
 }
 
-/* ------------------------- JSON DIŞA/İÇE AKTAR -------------------- */
+/* ===================== JSON DIŞA/İÇE ===================== */
 document.getElementById("btnExportJson").onclick=()=>{
   const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
   const a = document.createElement("a"); a.href=URL.createObjectURL(blob);
@@ -607,7 +633,7 @@ document.getElementById("importJson").addEventListener("change", (e)=>{
   r.readAsText(f);
 });
 
-/* ---------------------------- YARDIMCI ----------------------------- */
+/* ===================== YARDIMCI ===================== */
 async function wrap(promise){
   try{ await promise(); }
   catch(err){ console.error(err); alert(err.message||String(err)); }
