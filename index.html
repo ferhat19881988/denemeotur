@@ -1191,10 +1191,15 @@ async function wrap(promise){
   try{ await promise(); }
   catch(err){ console.error(err); alert(err.message||String(err)); }
 }
+
 (function bootstrap(){
+  const hasSaved = loadLocal();
+  if(!hasSaved){ state.cfg.theme = "light"; }           // İlk açılışta açık tema
+
   state.classes = state.classes.map(c=>normalizeClass(c));
   applyTheme();
-  /* İlk yüklemede sadece 'Ayarlar' açık kalsın */
+
+  // İlk yüklemede sadece 'Ayarlar' açık kalsın
   document.querySelectorAll("section.card").forEach(s=>s.classList.add("hidden"));
   document.getElementById("ayarl").classList.remove("hidden");
 
@@ -1203,4 +1208,5 @@ async function wrap(promise){
 </script>
 </body>
 </html>
+
 
