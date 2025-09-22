@@ -92,8 +92,8 @@
     .seat .nm{
       font:12px/1.2 Arial;color:#000;
       max-width:120px;
-      white-space:normal;
-      word-break:break-word;
+      white-space:normal;       /* tam sığma için */
+      word-break:break-word;    /* çok uzun soyadları böl */
       text-align:center;
     }
   }
@@ -280,15 +280,6 @@
 <div id="modalRoot" class="hidden"></div>
 
 <script>
-/* ===================== LOCAL STORAGE SIFIRLA ===================== */
-/* Neden: Her açılışta daha önceki kalıntılar silinsin; oturumluk çalışma. */
-(function enforceStatelessStartup(){
-  try { localStorage.removeItem("deneme-app"); } catch(e) {}
-  window.addEventListener("beforeunload", () => {
-    try { localStorage.removeItem("deneme-app"); } catch(e) {}
-  });
-})();
-
 /* ===================== DURUM ===================== */
 const state = {
   cfg: {
@@ -323,7 +314,7 @@ function normalizeKey(s){
 function lastWord(s){ const p=(s||"").toString().trim().split(/\s+/); return p[p.length-1]||""; }
 function gradeOf(sinif){ const m = (sinif||"").toString().trim().match(/^(\d)/); return m? m[1] : ""; }
 function uid(){ return Math.random().toString(36).slice(2,9); }
-function saveLocal(){ localStorage.setItem("deneme-app", JSON.stringify(state)); }  /* Oturumda işe yarar; açılışta temizlenecek */
+function saveLocal(){ localStorage.setItem("deneme-app", JSON.stringify(state)); }
 function loadLocal(){
   const s = localStorage.getItem("deneme-app"); if(!s) return false;
   try{ const obj = JSON.parse(s); Object.assign(state, obj); return true; }catch{ return false; }
@@ -515,12 +506,15 @@ function renderClassTable(){
       </td>
     `;
 
+    /* === Seçicileri DOĞRU bağla (önce index hatası vardı) === */
     const nameInput = tr.querySelector('input[title="Kontenjan"]')?.previousElementSibling || tr.querySelector('td:first-child input');
     const capInput  = tr.querySelector('input[title="Kontenjan"]');
     const levelSel  = tr.querySelectorAll("select")[0];
     const tchSel    = tr.querySelector(".tchSel");
     const rowsInput = tr.querySelector('input[title="Satır otomatik hesaplanır"]');
     const colsInput = tr.querySelector('input[title="Sütun"]');
+
+    /* güvenli: isim alanı */
     const nm = tr.querySelector('td:first-child input');
 
     (nm||nameInput).oninput=()=>{cls.name=(nm||nameInput).value; saveLocal();};
@@ -535,6 +529,7 @@ function renderClassTable(){
     tchSel.onchange=()=>{ cls.teacherIds = [...tchSel.selectedOptions].map(o=>o.value); saveLocal(); };
 
     colsInput.oninput=()=>{
+      /* Neden: sütun değişince satır hesaplanmalı; kilitliyse zaten disabled olur */
       const v = Math.max(1, parseInt(colsInput.value||1));
       cls.cols = v;
       recomputeRows(cls); rowsInput.value = cls.rows;
@@ -844,7 +839,7 @@ document.getElementById("btnAutoAssign").onclick=()=>{
 };
 document.getElementById("btnClearAssign").onclick=()=>{
   const level = document.getElementById("filterLevel").value;
-  state.classes.filter(c=>String(c.level)===String(level)).forEach(c=>c.students=[];
+  state.classes.filter(c=>String(c.level)===String(level)).forEach(c=>c.students=[]);
   renderAssignArea(); saveLocal();
 };
 document.getElementById("btnShuffle").onclick=()=>{
@@ -911,7 +906,7 @@ function printSeating(){
     const cap = Math.max(0, parseInt(cls.cap||0));
     const pct = cap>0 ? Math.round((assignedCount*100)/cap) : 0;
 
-    const totalSeats = Math.max(cls.cap, cls.rows * cls.cols);
+    const totalSeats = Math.max(cls.cap, cls.rows * cls.cols); // görünüm tam olsun
 
     page.innerHTML = `
       <div class="print-title">${cls.name} — Oturma Planı (${cls.rows}×${cls.cols})</div>
@@ -1009,12 +1004,7 @@ async function wrap(promise){
   catch(err){ console.error(err); alert(err.message||String(err)); }
 }
 (function bootstrap(){
-  /* Açılışta localStorage zaten temizlendi; varsa okumaya çalışmak güvenli şekilde boş döner */
-  if(loadLocal()){
-    document.getElementById("sheetId").value=state.cfg.sheetId;
-    document.getElementById("sheetStudentTab").value=state.cfg.tabStudents;
-    document.getElementById("sheetTeacherTab").value=state.cfg.tabTeachers;
-  }
+  /* Neden: otomatik yüklemeyi kapatmak için loadLocal() kullanılmıyor */
   state.classes = state.classes.map(c=>normalizeClass(c));
   applyTheme();
   renderPeopleLists(); renderClassTable(); renderAssignArea(); renderCalendar();
