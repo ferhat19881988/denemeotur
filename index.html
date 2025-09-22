@@ -60,6 +60,8 @@
   }
 
   .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;clip:rect(0 0 0 0);overflow:hidden}
+  /* FIX: Sekme dışı bölümleri gizlemek için */
+  .hidden{display:none !important}
 
   /* Pencere görünümü */
   .wrap{
@@ -1195,6 +1197,10 @@ async function wrap(promise){
 (function bootstrap(){
   state.classes = state.classes.map(c=>normalizeClass(c));
   applyTheme();
+  /* İlk yüklemede sadece 'Ayarlar' açık kalsın */
+  document.querySelectorAll("section.card").forEach(s=>s.classList.add("hidden"));
+  document.getElementById("ayarl").classList.remove("hidden");
+
   renderPeopleLists(); renderClassTable(); renderAssignArea(); renderCalendar();
 })();
 </script>
