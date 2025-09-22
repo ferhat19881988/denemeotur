@@ -1193,20 +1193,24 @@ async function wrap(promise){
 }
 
 (function bootstrap(){
-  const hasSaved = loadLocal();
-  if(!hasSaved){ state.cfg.theme = "light"; }           // İlk açılışta açık tema
+  // İlk açılışta kayıt okunmasın; açık tema ile başla
+  state.cfg.theme = "light";
 
-  state.classes = state.classes.map(c=>normalizeClass(c));
+  state.classes = (state.classes || []).map(c => normalizeClass(c));
   applyTheme();
 
-  // İlk yüklemede sadece 'Ayarlar' açık kalsın
-  document.querySelectorAll("section.card").forEach(s=>s.classList.add("hidden"));
+  // Yalnızca 'Ayarlar' sekmesi açık
+  document.querySelectorAll("section.card").forEach(s => s.classList.add("hidden"));
   document.getElementById("ayarl").classList.remove("hidden");
 
-  renderPeopleLists(); renderClassTable(); renderAssignArea(); renderCalendar();
+  renderPeopleLists();
+  renderClassTable();
+  renderAssignArea();
+  renderCalendar();
 })();
 </script>
 </body>
 </html>
+
 
 
