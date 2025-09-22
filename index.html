@@ -1,4 +1,4 @@
-<!-- /index.html -->
+<!-- /mnt/data/index.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -6,62 +6,229 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Deneme Öğrenci Oturma Planı</title>
 <style>
+  /* ====== macOS benzeri tema değişkenleri ====== */
   :root{
-    --bg:#0b1220; --card:#121a2b; --muted:#8aa0b3; --text:#e8f1ff; --accent:#4da3ff; --accent-2:#28c997;
-    --danger:#ff6b6b; --warn:#ffd166; --ok:#51cf66; --border:#1e2a44; --field:#0d1627; --table-h:#a7b8cd;
+    --bg:#0b0e14;
+    --card:#111522;
+    --muted:#8fa1b3;
+    --text:#eef4ff;
+    --accent:#0A84FF;          /* macOS mavi */
+    --accent-2:#30d158;        /* macOS yeşil */
+    --danger:#ff453a;          /* macOS kırmızı */
+    --warn:#ffd60a;
+    --ok:#32d74b;
+    --border:#1f2a3f;
+    --field:#0f1422;
+    --table-h:#a9b8cc;
+
+    --radius:14px;
+    --radius-lg:18px;
+    --shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.02) inset;
+    --glass:rgba(255,255,255,.06);
+    --glassBorder:rgba(255,255,255,.10);
+    --focus:0 0 0 3px color-mix(in oklab, var(--accent) 50%, transparent);
   }
   .theme-light{
-    --bg:#f7f9fc; --card:#ffffff; --muted:#5c6b7a; --text:#0a1728; --accent:#1666d3; --accent-2:#0ea37a;
-    --danger:#d64545; --warn:#b88900; --ok:#2f9e44; --border:#dbe3ef; --field:#f1f5fb; --table-h:#2b3a4b;
+    --bg:#f5f6fa;
+    --card:#ffffff;
+    --muted:#5d6b7a;
+    --text:#0a1728;
+    --accent:#0A84FF;
+    --accent-2:#34c759;
+    --danger:#ff3b30;
+    --warn:#b88900;
+    --ok:#2f9e44;
+    --border:#e4e8f2;
+    --field:#f7f9fe;
+    --table-h:#263448;
+
+    --glass:rgba(255,255,255,.7);
+    --glassBorder:rgba(0,0,0,.08);
+    --shadow:0 10px 24px rgba(22,27,45,.08);
   }
+
+  /* ====== Genel ====== */
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:linear-gradient(180deg, color-mix(in oklab, var(--bg), #000 6%), var(--bg));
+    color:var(--text);
+    font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;border:0;padding:0;clip:rect(0 0 0 0);overflow:hidden}
+
+  /* Pencere görünümü */
+  .wrap{
+    max-width:1200px;
+    margin:32px auto;
+    padding:0 16px 20px;
+    border-radius:calc(var(--radius-lg) + 4px);
+    box-shadow:var(--shadow);
+    backdrop-filter:saturate(140%) blur(20px);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--card), #fff 2%), var(--card));
+    border:1px solid var(--glassBorder);
+  }
+
+  /* ====== mac Başlık Çubuğu ====== */
+  .mac-titlebar{
+    position:sticky; top:0;
+    z-index:5;
+    display:flex; align-items:center; gap:12px;
+    height:46px; padding:0 14px;
+    border-bottom:1px solid var(--glassBorder);
+    background:color-mix(in oklab, var(--glass) 70%, transparent);
+    -webkit-backdrop-filter:saturate(140%) blur(18px);
+    backdrop-filter:saturate(140%) blur(18px);
+    border-top-left-radius:calc(var(--radius-lg) + 4px);
+    border-top-right-radius:calc(var(--radius-lg) + 4px);
+  }
+  .traffic{display:flex; gap:8px; align-items:center}
+  .traffic .dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.15);box-shadow:0 1px 0 rgba(255,255,255,.35) inset}
+  .traffic .red{background:#ff5f57}
+  .traffic .yellow{background:#febc2e}
+  .traffic .green{background:#28c840}
+  .mac-title{font-weight:600; letter-spacing:.2px; opacity:.9}
+  .title-spacer{margin-left:auto}
+
+  /* ====== Sekmeler (Segmented Control + ikon) ====== */
+  .tabs{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:12px 0 14px; padding:10px;
+    background:color-mix(in oklab, var(--glass) 70%, transparent);
+    border:1px solid var(--glassBorder);
+    border-radius:999px;
+    -webkit-backdrop-filter:saturate(140%) blur(18px);
+    backdrop-filter:saturate(140%) blur(18px);
+  }
+  .tab-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--text);
+    padding:8px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:transform .06s ease, background .2s ease, border-color .2s ease;
+    user-select:none;
+    white-space:nowrap;
+  }
+  .tab-btn .icon{width:16px;height:16px;display:block;opacity:.9}
+  .tab-btn:hover{background:color-mix(in oklab, var(--accent) 6%, transparent)}
+  .tab-btn:active{transform:translateY(1px)}
+  .tab-btn.active{
+    background:color-mix(in oklab, var(--accent) 14%, var(--card));
+    border-color:color-mix(in oklab, var(--accent) 35%, var(--glassBorder));
+    box-shadow:0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent) inset;
+  }
+  .right{margin-left:auto; display:flex; align-items:center; gap:8px}
+
+  /* ====== Kartlar ====== */
+  .card{
+    background:linear-gradient(180deg, color-mix(in oklab, var(--card), #fff 1%), var(--card));
+    border:1px solid var(--glassBorder);
+    border-radius:var(--radius-lg);
+    padding:16px;
+    margin:10px 0;
+    box-shadow:0 6px 16px rgba(0,0,0,.12);
+  }
+
+  /* ====== Tipografi ====== */
   h1,h2,h3{margin:.2rem 0 .6rem}
-  h1{font-size:1.4rem}
-  h2{font-size:1.2rem;color:var(--accent)}
-  a{color:var(--accent)}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  .tab-btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer}
-  .tab-btn.active{outline:2px solid var(--accent);background:color-mix(in oklab, var(--card), var(--accent) 8%)}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin:10px 0}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .col{flex:1 1 280px;min-width:260px}
+  h1{font-size:1.3rem}
+  h2{font-size:1.1rem;color:var(--text); opacity:.9}
+  h3{font-size:1rem; opacity:.9}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ====== Formlar / Butonlar (mac benzeri) ====== */
   label{display:block;margin:6px 0 4px;color:var(--muted)}
   input,select,button,textarea{
-    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--field);color:var(--text)
+    width:100%;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, var(--field), color-mix(in oklab, var(--field), #fff 3%));
+    color:var(--text);
+    box-shadow:0 1px 0 rgba(255,255,255,.04) inset;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
   }
-  button{cursor:pointer}
+  input::placeholder, textarea::placeholder{color:color-mix(in oklab, var(--muted), #fff 20%); opacity:.7}
+  button{cursor:pointer; width:auto}
+  button.primary{
+    background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 18%, var(--field)), var(--field));
+    border-color:color-mix(in oklab, var(--accent) 55%, var(--border));
+  }
+  button.danger{
+    background:linear-gradient(180deg, color-mix(in oklab, var(--danger) 22%, var(--field)), var(--field));
+    border-color:color-mix(in oklab, var(--danger) 55%, var(--border));
+  }
+  .btn-sm{padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--field);color:var(--text);cursor:pointer}
+  .btn-sm:hover, button:hover{border-color:color-mix(in oklab, var(--accent) 40%, var(--border))}
+  .btn-sm:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible{outline:none; box-shadow:var(--focus)}
+
+  /* Tema düğmesi — segment switch görünümü */
+  #btnTheme{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 12px; border-radius:999px;
+    background:linear-gradient(180deg, var(--card), color-mix(in oklab, var(--card), #fff 2%));
+  }
+
+  /* ====== Düzen yardımcıları ====== */
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .col{flex:1 1 280px;min-width:260px}
   .small{font-size:.85rem;color:var(--muted)}
   .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;background:var(--field);border:1px solid var(--border)}
   .grid{display:grid;gap:8px}
   .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
   .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-  table{width:100%;border-collapse:collapse}
-  th,td{border-bottom:1px dashed var(--border);padding:8px 6px;text-align:left}
-  th{color:var(--table-h)}
   .inline{display:inline-flex;gap:8px;align-items:center}
-  .list{display:flex;flex-direction:column;gap:6px;max-height:480px;overflow:auto;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
-  .student{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--field);cursor:grab;display:flex;gap:8px;align-items:center;justify-content:space-between}
-  .student .meta{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .class-col{min-width:260px}
-  .drop{min-height:80px;border:2px dashed var(--border);border-radius:12px;padding:8px}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:.5rem 0}
-  .right{margin-left:auto}
-  .kpi{display:flex;gap:12px;flex-wrap:wrap}
-  .kpi .card{min-width:180px}
-  .hidden{display:none!important}
-  .btn-sm{padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--field);color:var(--text);cursor:pointer}
   .gap-8{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  /* ====== Liste & Öğrenci Chip ====== */
+  .list{display:flex;flex-direction:column;gap:6px;max-height:480px;overflow:auto;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+  .student{
+    padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:var(--field);
+    cursor:grab;display:flex;gap:8px;align-items:center;justify-content:space-between;
+    transition:transform .06s ease, border-color .2s ease;
+  }
+  .student:active{transform:scale(.995)}
+  .student .meta{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .assigned { text-decoration: line-through; opacity: .6; cursor: not-allowed; }
+
   .chip-actions{display:flex;gap:6px;align-items:center}
   .chip-badge{font-size:.75rem;border:1px dashed var(--border);padding:2px 6px;border-radius:8px}
+
+  .class-col{min-width:260px}
+  .drop{min-height:80px;border:2px dashed var(--border);border-radius:12px;padding:8px;transition:border-color .2s ease}
+  .drop:focus-within{border-color:color-mix(in oklab, var(--accent) 45%, var(--border))}
+
+  /* ====== Tablo ====== */
+  table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden}
+  th,td{border-bottom:1px dashed var(--border);padding:8px 6px;text-align:left}
+  th{color:var(--table-h); font-weight:600}
+
+  /* ====== Modal ====== */
   .modal-backdrop{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:1000}
-  .modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;max-width:420px;width:92%}
+  .modal{background:var(--card);border:1px solid var(--glassBorder);border-radius:14px;padding:16px;max-width:420px;width:92%;box-shadow:var(--shadow)}
   .modal h3{margin-top:0}
   .modal .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
-  /* ====== YAZDIR ====== */
+  /* ====== Mac keycap ====== */
+  .keycap{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:20px;padding:2px 6px;border-radius:6px;
+    border:1px solid var(--glassBorder); background:linear-gradient(180deg, #fff2, #0001);
+    box-shadow:0 1px 0 rgba(255,255,255,.3) inset, 0 1px 1px rgba(0,0,0,.1);
+    font:600 12px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color:var(--text);
+  }
+
+  /* ====== Yazdır ====== */
   @media print{
     body *{visibility:hidden}
     #printRoot, #printRoot *{visibility:visible}
@@ -69,13 +236,10 @@
     .print-page{page-break-after:always}
     .print-title{font:600 18px/1.3 Arial;margin-bottom:6px;color:#000}
     .print-sub{font:600 14px/1.3 Arial;margin-bottom:12px;color:#000}
-
     table{font:12px Arial;color:#000}
     th,td{border:1px solid #000}
     .print-list td:nth-child(2), .print-list th:nth-child(2){text-align:center;font-weight:700}
     .print-list td:nth-child(2){font-size:16px}
-
-    /* Izgara: satır × sütun */
     .seat-grid{
       --cols: 4;
       display:grid;
@@ -91,24 +255,52 @@
     .seat .idx{font:700 11px Arial;color:#000}
     .seat .nm{
       font:12px/1.2 Arial;color:#000;
-      max-width:120px;
-      white-space:normal;       /* tam sığma için */
-      word-break:break-word;    /* çok uzun soyadları böl */
-      text-align:center;
+      max-width:120px; white-space:normal; word-break:break-word; text-align:center;
     }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Deneme Öğrenci Oturma Planı</h1>
+
+  <!-- macOS başlık çubuğu -->
+  <div class="mac-titlebar no-print">
+    <div class="traffic">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+    </div>
+    <div class="mac-title">Deneme Öğrenci Oturma Planı</div>
+    <div class="title-spacer"></div>
+  </div>
+
+  <h1 class="visually-hidden">Deneme Öğrenci Oturma Planı</h1>
+
+  <!-- İkonlu yatay sekmeler -->
   <div class="tabs no-print">
-    <button class="tab-btn active" data-tab="ayarl">1) Ayarlar & Veri</button>
-    <button class="tab-btn" data-tab="sinif">2) Sınıflar</button>
-    <button class="tab-btn" data-tab="takvim">3) Deneme Takvimi</button>
-    <button class="tab-btn" data-tab="atama">4) Atama & Düzen</button>
-    <button class="tab-btn" data-tab="yazdir">5) Yazdır</button>
-    <span class="right inline">
+    <button class="tab-btn active" data-tab="ayarl" title="Ayarlar">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm9 3c0-.5-.06-.98-.18-1.44l2.05-1.6-2-3.46-2.49 1a8.92 8.92 0 0 0-2.5-1.45l-.38-2.64H8.5l-.38 2.64c-.9.3-1.73.73-2.5 1.45l-2.49-1-2 3.46 2.05 1.6A8.9 8.9 0 0 0 3 12c0 .5.06.98.18 1.44l-2.05 1.6 2 3.46 2.49-1c.77.72 1.6 1.15 2.5 1.45l.38 2.64h7l.38-2.64c.9-.3 1.73-.73 2.5-1.45l2.49 1 2-3.46-2.05-1.6c.12-.46.18-.94.18-1.44Z" fill="currentColor"/>
+      </svg>
+      <span>Ayarlar</span>
+    </button>
+    <button class="tab-btn" data-tab="sinif" title="Sınıflar">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 4h8v8H3V4Zm10 0h8v8h-8V4ZM3 12h8v8H3v-8Zm10 4h8v4h-8v-4Z" fill="currentColor"/></svg>
+      <span>Sınıflar</span>
+    </button>
+    <button class="tab-btn" data-tab="takvim" title="Deneme Takvimi">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v2h18V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm14 8H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10ZM7 14h4v4H7v-4Z" fill="currentColor"/></svg>
+      <span>Takvim</span>
+    </button>
+    <button class="tab-btn" data-tab="atama" title="Atama & Düzen">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M7 7h10v2H7V7Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z" fill="currentColor"/><path d="M4 12 2 10l4-4 2 2-4 4Zm16 0 2 2-4 4-2-2 4-4Z" fill="currentColor"/></svg>
+      <span>Atama</span>
+    </button>
+    <button class="tab-btn" data-tab="yazdir" title="Yazdır">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M7 3h10v4H7V3Zm10 14H7v4h10v-4Zm1-8H6a3 3 0 0 0-3 3v5h4v-3h10v3h4v-5a3 3 0 0 0-3-3Z" fill="currentColor"/></svg>
+      <span>Yazdır</span>
+    </button>
+    <span class="right">
       <button id="btnTheme" title="Temayı değiştir">Tema: Açık</button>
     </span>
   </div>
@@ -130,13 +322,13 @@
         <input id="sheetTeacherTab" value="Ogretmenler" />
       </div>
     </div>
-    <div class="toolbar">
-      <button id="btnLoad">Verileri Yükle</button>
+    <div class="toolbar inline" style="margin:.5rem 0; flex-wrap:wrap">
+      <button id="btnLoad" class="primary">Verileri Yükle</button>
       <button id="btnSaveCfg">Ayarları Kaydet</button>
       <button id="btnLoadCfg">Ayarları Yükle</button>
-      <div class="small">Not: E-tablo en az “Bağlantıya sahip olan görüntüleyebilir” olmalı.</div>
+      <div class="small">Not: E-tablo en az “Bağlantıya sahip olan görüntüleyebilir” olmalı. <span class="keycap">⌘</span><span class="keycap">C</span> / <span class="keycap">⌘</span><span class="keycap">V</span> ile ID yapıştır.</div>
     </div>
-    <div class="toolbar">
+    <div class="toolbar inline" style="flex-wrap:wrap">
       <span class="pill">Ayarlar
         <button class="btn-sm" id="expCfg">Kaydet</button>
         <label class="btn-sm">Yükle <input id="impCfg" type="file" accept="application/json" style="width:auto;display:none"></label>
@@ -150,7 +342,7 @@
         <label class="btn-sm">Yükle <input id="impTch" type="file" accept="application/json" style="width:auto;display:none"></label>
       </span>
     </div>
-    <div class="kpi">
+    <div class="kpi row" style="gap:12px;flex-wrap:wrap">
       <div class="card"><div>Öğrenci</div><div id="kpiStd" class="pill">0</div></div>
       <div class="card"><div>Öğretmen</div><div id="kpiTch" class="pill">0</div></div>
       <div class="card"><div>Son Yükleme</div><div id="kpiLoad" class="pill">-</div></div>
@@ -170,8 +362,8 @@
   <!-- 2) SINIFLAR -->
   <section id="sinif" class="card hidden">
     <h2>Sınıfları Oluştur</h2>
-    <div class="toolbar">
-      <button id="btnAddClass">Yeni Sınıf Ekle</button>
+    <div class="toolbar inline" style="flex-wrap:wrap">
+      <button id="btnAddClass" class="primary">Yeni Sınıf Ekle</button>
       <button id="btnClearClass" class="danger">Tüm Sınıfları Sil</button>
       <span class="pill">Sınıflar
         <button class="btn-sm" id="expCls">Kaydet</button>
@@ -185,7 +377,7 @@
       <tbody id="classTbody"></tbody>
     </table>
     <div class="small" style="margin-top:6px">
-      İpucu: **Satır** otomatik hesaplanır (⌈Kontenjan / Sütun⌉). Örn. 23 kişi ve 4 sütun ⇒ en az 6 satır.
+      İpucu: <b>Satır</b> otomatik hesaplanır (⌈Kontenjan / Sütun⌉). Örn. 23 kişi ve 4 sütun ⇒ en az 6 satır.
     </div>
   </section>
 
@@ -208,10 +400,10 @@
       </div>
       <div>
         <label>&nbsp;</label>
-        <button id="btnSaveExam">Tarihi Kaydet</button>
+        <button id="btnSaveExam" class="primary">Tarihi Kaydet</button>
       </div>
     </div>
-    <div class="toolbar">
+    <div class="toolbar inline" style="flex-wrap:wrap">
       <span class="pill">Takvim
         <button class="btn-sm" id="expCal">Kaydet</button>
         <label class="btn-sm">Yükle <input id="impCal" type="file" accept="application/json" style="width:auto;display:none"></label>
@@ -228,8 +420,8 @@
   <!-- 4) ATAMA -->
   <section id="atama" class="card hidden">
     <h2>Atama & Sürükle-Bırak</h2>
-    <div class="toolbar">
-      <div>
+    <div class="toolbar inline" style="flex-wrap:wrap">
+      <div class="inline" style="gap:8px">
         <label class="inline">Düzey:
           <select id="filterLevel">
             <option value="8">8</option><option value="7">7</option><option value="6">6</option><option value="5">5</option>
@@ -244,11 +436,11 @@
             <option value="rand">Rastgele</option>
           </select>
         </label>
-        <button id="btnAutoAssign">Otomatik Atama</button>
+        <button id="btnAutoAssign" class="primary">Otomatik Atama</button>
         <button id="btnClearAssign">Atamaları Temizle</button>
         <button id="btnShuffle" title="Tüm sınıflarda rastgele karıştır">Karıştır</button>
       </div>
-      <div class="right inline">
+      <div class="right">
         <span class="pill">Atamalar
           <button class="btn-sm" id="expAssign">Kaydet</button>
           <label class="btn-sm">Yükle <input id="impAssign" type="file" accept="application/json" style="width:auto;display:none"></label>
@@ -264,11 +456,11 @@
     <div class="grid cols-2 no-print">
       <div class="card">
         <h3>Liste Yazdır</h3>
-        <button onclick="printLists()">Öğrenci Listeleri Yazdır</button>
+        <button onclick="printLists()" class="primary">Öğrenci Listeleri Yazdır</button>
       </div>
       <div class="card">
         <h3>Oturma Planı Yazdır</h3>
-        <button onclick="printSeating()">Oturma Planı Yazdır</button>
+        <button onclick="printSeating()" class="primary">Oturma Planı Yazdır</button>
       </div>
     </div>
     <div class="small no-print">Yazdırmadan önce atamaların yapıldığından emin olun.</div>
@@ -506,7 +698,6 @@ function renderClassTable(){
       </td>
     `;
 
-    /* === Seçicileri DOĞRU bağla (önce index hatası vardı) === */
     const nameInput = tr.querySelector('input[title="Kontenjan"]')?.previousElementSibling || tr.querySelector('td:first-child input');
     const capInput  = tr.querySelector('input[title="Kontenjan"]');
     const levelSel  = tr.querySelectorAll("select")[0];
@@ -514,7 +705,6 @@ function renderClassTable(){
     const rowsInput = tr.querySelector('input[title="Satır otomatik hesaplanır"]');
     const colsInput = tr.querySelector('input[title="Sütun"]');
 
-    /* güvenli: isim alanı */
     const nm = tr.querySelector('td:first-child input');
 
     (nm||nameInput).oninput=()=>{cls.name=(nm||nameInput).value; saveLocal();};
@@ -529,7 +719,6 @@ function renderClassTable(){
     tchSel.onchange=()=>{ cls.teacherIds = [...tchSel.selectedOptions].map(o=>o.value); saveLocal(); };
 
     colsInput.oninput=()=>{
-      /* Neden: sütun değişince satır hesaplanmalı; kilitliyse zaten disabled olur */
       const v = Math.max(1, parseInt(colsInput.value||1));
       cls.cols = v;
       recomputeRows(cls); rowsInput.value = cls.rows;
@@ -906,7 +1095,7 @@ function printSeating(){
     const cap = Math.max(0, parseInt(cls.cap||0));
     const pct = cap>0 ? Math.round((assignedCount*100)/cap) : 0;
 
-    const totalSeats = Math.max(cls.cap, cls.rows * cls.cols); // görünüm tam olsun
+    const totalSeats = Math.max(cls.cap, cls.rows * cls.cols);
 
     page.innerHTML = `
       <div class="print-title">${cls.name} — Oturma Planı (${cls.rows}×${cls.cols})</div>
@@ -1004,7 +1193,6 @@ async function wrap(promise){
   catch(err){ console.error(err); alert(err.message||String(err)); }
 }
 (function bootstrap(){
-  /* Neden: otomatik yüklemeyi kapatmak için loadLocal() kullanılmıyor */
   state.classes = state.classes.map(c=>normalizeClass(c));
   applyTheme();
   renderPeopleLists(); renderClassTable(); renderAssignArea(); renderCalendar();
