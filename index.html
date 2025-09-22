@@ -1084,20 +1084,24 @@ function printLists(){
 }
 
 /* === Izgara (satır × sütun) oturma planı yazdır + Doluluk === */
+/* === Izgara (kapasite kadar sıra) oturma planı yazdır === */
 function printSeating(){
-  const root = document.getElementById("printRoot"); root.innerHTML=""; root.classList.remove("hidden");
+  const root = document.getElementById("printRoot"); 
+  root.innerHTML=""; 
+  root.classList.remove("hidden");
 
   state.classes.forEach(cls=>{
-    const page = document.createElement("div"); page.className="print-page";
+    const page = document.createElement("div"); 
+    page.className="print-page";
+
     const lvlCal = state.calendar.find(x=>x.level===cls.level);
     const inv = teacherNames(cls.teacherIds).join(", ") || "-";
 
+    // Neden: sadece kapasite kadar sıra üretmek gerekiyor
+    const cap = Math.max(0, parseInt(cls.cap||0));
     const assigned = (cls.students||[]).map(no=>state.students.find(s=>s.no===no)?.adsoyad || "");
     const assignedCount = assigned.filter(Boolean).length;
-    const cap = Math.max(0, parseInt(cls.cap||0));
     const pct = cap>0 ? Math.round((assignedCount*100)/cap) : 0;
-
-    const totalSeats = Math.max(cls.cap, cls.rows * cls.cols);
 
     page.innerHTML = `
       <div class="print-title">${cls.name} — Oturma Planı (${cls.rows}×${cls.cols})</div>
@@ -1107,17 +1111,10 @@ function printSeating(){
     const grid = document.createElement("div");
     grid.className = "seat-grid";
     grid.style.setProperty("--cols", String(Math.max(1, parseInt(cls.cols||1))));
-    const rows = Math.max(1, parseInt(cls.rows||1));
-    const cols = Math.max(1, parseInt(cls.cols||1));
 
-    let idx=0;
-    for(let r=0;r<rows;r++){
-      for(let c=0;c<cols;c++){
-        if(idx>=totalSeats) break;
-        const name = assigned[idx] || "Boş";
-        grid.appendChild(buildSeatCard(idx+1, name));
-        idx++;
-      }
+    for(let idx=0; idx<cap; idx++){
+      const name = assigned[idx] || "Boş";
+      grid.appendChild(buildSeatCard(idx+1, name));
     }
 
     page.appendChild(grid);
@@ -1206,3 +1203,4 @@ async function wrap(promise){
 </script>
 </body>
 </html>
+
