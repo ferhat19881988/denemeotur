@@ -1,3 +1,4 @@
+<!-- /index.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -13,7 +14,6 @@
     --bg:#f7f9fc; --card:#ffffff; --muted:#5c6b7a; --text:#0a1728; --accent:#1666d3; --accent-2:#0ea37a;
     --danger:#d64545; --warn:#b88900; --ok:#2f9e44; --border:#dbe3ef; --field:#f1f5fb; --table-h:#2b3a4b;
   }
-
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial}
   h1,h2,h3{margin:.2rem 0 .6rem}
@@ -41,8 +41,9 @@
   th,td{border-bottom:1px dashed var(--border);padding:8px 6px;text-align:left}
   th{color:var(--table-h)}
   .inline{display:inline-flex;gap:8px;align-items:center}
-  .list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
-  .student{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--field);cursor:grab}
+  .list{display:flex;flex-direction:column;gap:6px;max-height:480px;overflow:auto;padding:6px;border:1px solid var(--border);border-radius:12px;background:var(--card)}
+  .student{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--field);cursor:grab;display:flex;gap:8px;align-items:center;justify-content:space-between}
+  .student .meta{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .class-col{min-width:260px}
   .drop{min-height:80px;border:2px dashed var(--border);border-radius:12px;padding:8px}
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:.5rem 0}
@@ -50,15 +51,51 @@
   .kpi{display:flex;gap:12px;flex-wrap:wrap}
   .kpi .card{min-width:180px}
   .hidden{display:none!important}
+  .btn-sm{padding:6px 10px;border-radius:10px;border:1px solid var(--border);background:var(--field);color:var(--text);cursor:pointer}
+  .gap-8{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .assigned { text-decoration: line-through; opacity: .6; cursor: not-allowed; }
+  .chip-actions{display:flex;gap:6px;align-items:center}
+  .chip-badge{font-size:.75rem;border:1px dashed var(--border);padding:2px 6px;border-radius:8px}
+  .modal-backdrop{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:1000}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;max-width:420px;width:92%}
+  .modal h3{margin-top:0}
+  .modal .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 
+  /* ====== YAZDIR ====== */
   @media print{
-    body{background:#fff;color:#000}
-    .no-print{display:none!important}
+    body *{visibility:hidden}
+    #printRoot, #printRoot *{visibility:visible}
+    #printRoot{position:absolute;left:0;top:0;width:100%}
     .print-page{page-break-after:always}
-    .print-title{font:600 18px/1.3 Arial;margin-bottom:6px}
-    .print-sub{font:600 14px/1.3 Arial;margin-bottom:12px}
-    table{font:12px Arial}
+    .print-title{font:600 18px/1.3 Arial;margin-bottom:6px;color:#000}
+    .print-sub{font:600 14px/1.3 Arial;margin-bottom:12px;color:#000}
+
+    table{font:12px Arial;color:#000}
     th,td{border:1px solid #000}
+    .print-list td:nth-child(2), .print-list th:nth-child(2){text-align:center;font-weight:700}
+    .print-list td:nth-child(2){font-size:16px}
+
+    /* Izgara: satır × sütun */
+    .seat-grid{
+      --cols: 4;
+      display:grid;
+      grid-template-columns: repeat(var(--cols), minmax(90px, 1fr));
+      gap:10px;
+      align-items:start;
+    }
+    .seat{
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      border:1px solid #000;padding:6px;border-radius:10px;
+    }
+    .seat svg{width:70px;height:44px;display:block}
+    .seat .idx{font:700 11px Arial;color:#000}
+    .seat .nm{
+      font:12px/1.2 Arial;color:#000;
+      max-width:120px;
+      white-space:normal;       /* tam sığma için */
+      word-break:break-word;    /* çok uzun soyadları böl */
+      text-align:center;
+    }
   }
 </style>
 </head>
@@ -76,6 +113,7 @@
     </span>
   </div>
 
+  <!-- 1) AYARLAR -->
   <section id="ayarl" class="card">
     <h2>Ayarlar & Google E-Tablo</h2>
     <div class="row">
@@ -98,6 +136,20 @@
       <button id="btnLoadCfg">Ayarları Yükle</button>
       <div class="small">Not: E-tablo en az “Bağlantıya sahip olan görüntüleyebilir” olmalı.</div>
     </div>
+    <div class="toolbar">
+      <span class="pill">Ayarlar
+        <button class="btn-sm" id="expCfg">Kaydet</button>
+        <label class="btn-sm">Yükle <input id="impCfg" type="file" accept="application/json" style="width:auto;display:none"></label>
+      </span>
+      <span class="pill">Öğrenciler
+        <button class="btn-sm" id="expStd">Kaydet</button>
+        <label class="btn-sm">Yükle <input id="impStd" type="file" accept="application/json" style="width:auto;display:none"></label>
+      </span>
+      <span class="pill">Öğretmenler
+        <button class="btn-sm" id="expTch">Kaydet</button>
+        <label class="btn-sm">Yükle <input id="impTch" type="file" accept="application/json" style="width:auto;display:none"></label>
+      </span>
+    </div>
     <div class="kpi">
       <div class="card"><div>Öğrenci</div><div id="kpiStd" class="pill">0</div></div>
       <div class="card"><div>Öğretmen</div><div id="kpiTch" class="pill">0</div></div>
@@ -105,30 +157,39 @@
     </div>
     <div class="row">
       <div class="col">
-        <h3>Öğrenciler (Örnek)</h3>
+        <h3>Öğrenciler</h3>
         <div id="sampleStd" class="list"></div>
       </div>
       <div class="col">
-        <h3>Öğretmenler (Örnek)</h3>
+        <h3>Öğretmenler</h3>
         <div id="sampleTch" class="list"></div>
       </div>
     </div>
   </section>
 
+  <!-- 2) SINIFLAR -->
   <section id="sinif" class="card hidden">
     <h2>Sınıfları Oluştur</h2>
     <div class="toolbar">
       <button id="btnAddClass">Yeni Sınıf Ekle</button>
       <button id="btnClearClass" class="danger">Tüm Sınıfları Sil</button>
+      <span class="pill">Sınıflar
+        <button class="btn-sm" id="expCls">Kaydet</button>
+        <label class="btn-sm">Yükle <input id="impCls" type="file" accept="application/json" style="width:auto;display:none"></label>
+      </span>
     </div>
     <table>
       <thead>
-        <tr><th>Ad</th><th>Kontenjan</th><th>Düzey (5–8)</th><th>Gözetmen</th><th>Satır</th><th>Sütun</th><th></th></tr>
+        <tr><th>Ad</th><th>Kontenjan</th><th>Düzey (5–8)</th><th>Gözetmen(ler)</th><th>Satır</th><th>Sütun</th><th></th></tr>
       </thead>
       <tbody id="classTbody"></tbody>
     </table>
+    <div class="small" style="margin-top:6px">
+      İpucu: **Satır** otomatik hesaplanır (⌈Kontenjan / Sütun⌉). Örn. 23 kişi ve 4 sütun ⇒ en az 6 satır.
+    </div>
   </section>
 
+  <!-- 3) TAKVİM -->
   <section id="takvim" class="card hidden">
     <h2>Deneme Takvimi</h2>
     <div class="grid cols-3">
@@ -150,6 +211,12 @@
         <button id="btnSaveExam">Tarihi Kaydet</button>
       </div>
     </div>
+    <div class="toolbar">
+      <span class="pill">Takvim
+        <button class="btn-sm" id="expCal">Kaydet</button>
+        <label class="btn-sm">Yükle <input id="impCal" type="file" accept="application/json" style="width:auto;display:none"></label>
+      </span>
+    </div>
     <div class="row">
       <div class="col">
         <h3>Kayıtlı Takvim</h3>
@@ -158,6 +225,7 @@
     </div>
   </section>
 
+  <!-- 4) ATAMA -->
   <section id="atama" class="card hidden">
     <h2>Atama & Sürükle-Bırak</h2>
     <div class="toolbar">
@@ -181,13 +249,16 @@
         <button id="btnShuffle" title="Tüm sınıflarda rastgele karıştır">Karıştır</button>
       </div>
       <div class="right inline">
-        <button id="btnExportJson">JSON Dışa Aktar</button>
-        <label class="pill">JSON Yükle <input id="importJson" type="file" accept="application/json" style="width:auto"/></label>
+        <span class="pill">Atamalar
+          <button class="btn-sm" id="expAssign">Kaydet</button>
+          <label class="btn-sm">Yükle <input id="impAssign" type="file" accept="application/json" style="width:auto;display:none"></label>
+        </span>
       </div>
     </div>
     <div class="row" id="assignArea"></div>
   </section>
 
+  <!-- 5) YAZDIR -->
   <section id="yazdir" class="card hidden">
     <h2>Yazdır</h2>
     <div class="grid cols-2 no-print">
@@ -206,8 +277,10 @@
 
 </div>
 
+<div id="modalRoot" class="hidden"></div>
+
 <script>
-/* ========= DURUM ========= */
+/* ===================== DURUM ===================== */
 const state = {
   cfg: {
     sheetId: "1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw",
@@ -217,15 +290,15 @@ const state = {
   },
   students: [],
   teachers: [],
-  classes: [],
+  classes: [],  // {id,name,cap,level,teacherIds,rows,cols,students,_lock}
   calendar: [],
 };
 
-/* ========= ARAÇLAR ========= */
+/* ===================== ARAÇLAR ===================== */
 async function fetchSheet(spreadsheetId, sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url, {cache:"no-store"});
-  if(!res.ok) throw new Error("E-Tablo okunamadı. Paylaşımı 'Bağlantıya sahip olan görüntüleyebilir' yapın.");
+  if(!res.ok) throw new Error("E-Tablo okunamadı. Paylaşımı kontrol edin.");
   const txt = await res.text();
   const json = JSON.parse(txt.substring(txt.indexOf("(")+1, txt.lastIndexOf(")")));
   const cols = json.table.cols.map(c => (c.label ?? ""));
@@ -233,10 +306,7 @@ async function fetchSheet(spreadsheetId, sheetName){
   return {cols, rows};
 }
 function normalizeKey(s){
-  return (s||"")
-    .toString()
-    .trim()
-    .toLowerCase()
+  return (s||"").toString().trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/ş/g,"s").replace(/ğ/g,"g").replace(/ı/g,"i").replace(/ç/g,"c").replace(/ö/g,"o").replace(/ü/g,"u")
     .replace(/\s|[^a-z0-9]/g,"");
@@ -249,51 +319,42 @@ function loadLocal(){
   const s = localStorage.getItem("deneme-app"); if(!s) return false;
   try{ const obj = JSON.parse(s); Object.assign(state, obj); return true; }catch{ return false; }
 }
-
-/* === Başlık bulucu: ilk 10 satır taraması === */
-function scanHeader(rows, needKeys){
-  const limit = Math.min(rows.length, 10);
-  for(let i=0;i<limit;i++){
-    const keys = rows[i].map(v=>normalizeKey(v));
-    if(needKeys.every(k=>keys.includes(k))) return {labels:keys, start:i+1};
-  }
-  return null;
+function fmtDate(dstr){ if(!dstr) return "-"; const d=new Date(dstr+"T12:00:00"); return d.toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"}); }
+function downloadJSON(name, data){
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+function pickAndRead(fileInput, cb){
+  fileInput.onchange = (e)=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ try{ cb(JSON.parse(r.result)); }catch{ alert("JSON okunamadı."); } fileInput.value=""; };
+    r.readAsText(f);
+  };
+  fileInput.click();
+}
+function teacherNames(ids){
+  if(!ids || !ids.length) return [];
+  return ids.map(id => (state.teachers.find(t=>t.id===id)?.ad || id));
 }
 
-/* === Heuristik çıkarım: örnek satırlara göre sütun tahmini === */
-function inferColumns(rows){
-  const sample = rows.slice(0, Math.min(30, rows.length));
-  if(sample.length===0) return null;
-  const cols = Math.max(...sample.map(r=>r.length));
-  let best=null;
-
-  for(let i=0;i<cols;i++){
-    for(let j=0;j<cols;j++){
-      if(j===i) continue;
-      for(let k=0;k<cols;k++){
-        if(k===i||k===j) continue;
-        let score=0, total=0;
-        for(const r of sample){
-          const vNo = (r[i]??"").toString().trim();
-          const vAd = (r[j]??"").toString().trim();
-          const vSn = (r[k]??"").toString().trim();
-          if(!vNo && !vAd && !vSn) continue;
-          total++;
-          const okNo = /^\d{1,6}$/.test(vNo);
-          const okAd = /\s/.test(vAd) && vAd.length>=3;
-          const okSn = /^[5-8]\s*[A-Za-zÇĞİÖŞÜ][A-Za-zÇĞİÖŞÜ]?/.test(vSn);
-          score += (okNo?1:0) + (okAd?1:0) + (okSn?1:0);
-        }
-        const norm = total? score/(total*3) : 0;
-        if(!best || norm>best.score) best={iNo:i,iAd:j,iSn:k,score:norm};
-      }
-    }
-  }
-  if(best && best.score>=0.55) return best; // yeterli güven
-  return null;
+/* ====== Satır otomatik hesap ====== */
+function recomputeRows(cls){
+  const cols = Math.max(1, parseInt(cls.cols||1));
+  const cap  = Math.max(0, parseInt(cls.cap||0));
+  cls.rows = Math.max(1, Math.ceil(cap / cols)); /* Neden: sütun değişince satır güncellensin */
+}
+function normalizeClass(cls){
+  if(typeof cls.cap!=="number") cls.cap = parseInt(cls.cap||0) || 0;
+  if(typeof cls.cols!=="number") cls.cols = parseInt(cls.cols||1) || 1;
+  recomputeRows(cls);
+  if(!Array.isArray(cls.students)) cls.students=[];
+  if(!Array.isArray(cls.teacherIds)) cls.teacherIds=[];
+  if(typeof cls._lock!=="boolean") cls._lock=true;
+  return cls;
 }
 
-/* ========= NAV ========= */
+/* ===================== NAV ===================== */
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -306,45 +367,25 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
   });
 });
 
-/* ========= VERİ ========= */
+/* ===================== VERİ ===================== */
 async function loadData(){
   const sid = document.getElementById("sheetId").value.trim() || state.cfg.sheetId;
   const tabS = document.getElementById("sheetStudentTab").value.trim() || "Deneme";
   const tabT = document.getElementById("sheetTeacherTab").value.trim() || "Ogretmenler";
   state.cfg.sheetId=sid; state.cfg.tabStudents=tabS; state.cfg.tabTeachers=tabT;
 
-  // ---- Öğrenciler
   const s = await fetchSheet(sid, tabS);
-
-  const needKeys = ["no","adsoyad","sinif"];
   let labels = s.cols.map(c=>normalizeKey(c));
   let rows = s.rows.slice();
-
-  let found = needKeys.every(k => labels.includes(k));
-  if(!found){
-    const headerRow = scanHeader(rows, needKeys);
-    if(headerRow){ labels = headerRow.labels; rows = rows.slice(headerRow.start); found = true; }
+  const need = ["no","adsoyad","sinif"];
+  let ok = need.every(k=>labels.includes(k));
+  if(!ok && rows.length){
+    const keys = rows[0].map(v=>normalizeKey(v));
+    if(need.every(k=>keys.includes(k))){ labels=keys; rows=rows.slice(1); ok=true; }
   }
-  let iNo = -1, iAd = -1, iSn = -1;
-
-  if(found){
-    iNo = labels.indexOf("no");
-    iAd = labels.indexOf("adsoyad");
-    iSn = labels.indexOf("sinif");
-  }else{
-    const guess = inferColumns(rows);
-    if(guess){ iNo=guess.iNo; iAd=guess.iAd; iSn=guess.iSn; found=true; }
-  }
-
-  if(!found){
-    // Son çare: A,B,C
-    iNo = 0; iAd = 1; iSn = 2;
-  }
-
-  if(iNo<0||iAd<0||iSn<0){
-    const seen = rows[0]? rows[0].map(v=>String(v)).join(" | ") : "(veri yok)";
-    throw new Error("Deneme sayfasında NO, ADSOYAD, SINIF bulunamadı.\nİlk satır: "+seen);
-  }
+  let iNo = ok? labels.indexOf("no"):0,
+      iAd = ok? labels.indexOf("adsoyad"):1,
+      iSn = ok? labels.indexOf("sinif"):2;
 
   state.students = rows.map(r=>({
     no: (r[iNo]??"").toString().trim(),
@@ -352,22 +393,19 @@ async function loadData(){
     sinif: (r[iSn]??"").toString().trim(),
   })).filter(x=>x.no && x.adsoyad);
 
-  // ---- Öğretmenler
   const t = await fetchSheet(sid, tabT);
   let tLabels = t.cols.map(c=>normalizeKey(c));
   let tRows = t.rows.slice();
-  const tNeed = ["id","ogretmenadi","brans"];
-  let tFound = tNeed.every(k=>tLabels.includes(k));
-  if(!tFound){
-    const tHeader = scanHeader(tRows, tNeed);
-    if(tHeader){ tLabels=tHeader.labels; tRows=tRows.slice(tHeader.start); tFound=true; }
+  const tNeed=["id","ogretmenadi","brans"];
+  let tOk = tNeed.every(k=>tLabels.includes(k));
+  if(!tOk && tRows.length){
+    const fk=tRows[0].map(v=>normalizeKey(v));
+    if(tNeed.every(k=>fk.includes(k))){ tLabels=fk; tRows=tRows.slice(1); tOk=true; }
   }
-  let iId = tLabels.indexOf("id");
-  let iNm = tLabels.indexOf("ogretmenadi");
-  let iBr = tLabels.indexOf("brans");
-  if(iId<0||iNm<0){ // basit tahmin
-    iId=0; iNm=1; iBr=2;
-  }
+  const iId = tOk? tLabels.indexOf("id"):0;
+  const iNm = tOk? tLabels.indexOf("ogretmenadi"):1;
+  const iBr = tOk? tLabels.indexOf("brans"):2;
+
   state.teachers = tRows.map(r=>({
     id:(r[iId]??"").toString().trim(),
     ad:(r[iNm]??"").toString().trim(),
@@ -377,20 +415,22 @@ async function loadData(){
   document.getElementById("kpiStd").textContent = state.students.length;
   document.getElementById("kpiTch").textContent = state.teachers.length;
   document.getElementById("kpiLoad").textContent = new Date().toLocaleString();
-  renderSamples();
+  renderPeopleLists();
   saveLocal();
 }
-function renderSamples(){
+function renderPeopleLists(){
   const sampleStd = document.getElementById("sampleStd"); sampleStd.innerHTML = "";
-  state.students.slice(0,20).forEach(st=>{
+  state.students.forEach(st=>{
     const el = document.createElement("div");
     el.className="student"; el.textContent = `${st.no} • ${st.adsoyad} • ${st.sinif}`;
+    el.style.cursor="default";
     sampleStd.appendChild(el);
   });
   const sampleTch = document.getElementById("sampleTch"); sampleTch.innerHTML="";
-  state.teachers.slice(0,20).forEach(tc=>{
+  state.teachers.forEach(tc=>{
     const el=document.createElement("div");
     el.className="student"; el.textContent = `${tc.id} • ${tc.ad} • ${tc.brans}`;
+    el.style.cursor="default";
     sampleTch.appendChild(el);
   });
 }
@@ -408,69 +448,168 @@ document.getElementById("btnLoadCfg").onclick=()=>{
     document.getElementById("sheetStudentTab").value = state.cfg.tabStudents;
     document.getElementById("sheetTeacherTab").value = state.cfg.tabTeachers;
     applyTheme();
-    renderSamples(); renderClassTable(); renderAssignArea(); renderCalendar();
+    renderPeopleLists(); renderClassTable(); renderAssignArea(); renderCalendar();
     alert("Kayıtlı durum yüklendi.");
   }else alert("Kayıt bulunamadı.");
 };
 document.getElementById("sheetId").value = state.cfg.sheetId;
 
-/* ========= SINIF ========= */
+/* Bölüm bazlı JSON */
+document.getElementById("expCfg").onclick=()=>downloadJSON("ayarlar.json", state.cfg);
+document.getElementById("expStd").onclick=()=>downloadJSON("ogrenciler.json", state.students);
+document.getElementById("expTch").onclick=()=>downloadJSON("ogretmenler.json", state.teachers);
+document.getElementById("impCfg").addEventListener("click", e=>pickAndRead(e.target, data=>{
+  if(!data || typeof data!=="object"){ alert("Geçersiz ayar dosyası."); return; }
+  state.cfg = {...state.cfg, ...data};
+  document.getElementById("sheetId").value=state.cfg.sheetId||"";
+  document.getElementById("sheetStudentTab").value=state.cfg.tabStudents||"";
+  document.getElementById("sheetTeacherTab").value=state.cfg.tabTeachers||"";
+  applyTheme(); saveLocal(); alert("Ayarlar yüklendi.");
+}));
+document.getElementById("impStd").addEventListener("click", e=>pickAndRead(e.target, data=>{
+  if(!Array.isArray(data)){ alert("Geçersiz öğrenci dosyası."); return; }
+  state.students = data.filter(x=>x && x.no && x.adsoyad);
+  document.getElementById("kpiStd").textContent = state.students.length;
+  renderPeopleLists(); saveLocal(); alert("Öğrenciler yüklendi.");
+}));
+document.getElementById("impTch").addEventListener("click", e=>pickAndRead(e.target, data=>{
+  if(!Array.isArray(data)){ alert("Geçersiz öğretmen dosyası."); return; }
+  state.teachers = data.filter(x=>x && x.id && x.ad);
+  document.getElementById("kpiTch").textContent = state.teachers.length;
+  renderPeopleLists(); renderClassTable(); saveLocal(); alert("Öğretmenler yüklendi.");
+}));
+
+/* ===================== SINIF ===================== */
 function renderClassTable(){
   const tb = document.getElementById("classTbody"); tb.innerHTML="";
   state.classes.forEach(cls=>{
+    normalizeClass(cls);
     const tr=document.createElement("tr");
+    const teacherOptions = state.teachers.map(t=>`<option value="${t.id}" ${cls.teacherIds?.includes(t.id)?"selected":""}>${t.id} • ${t.ad}</option>`).join("");
     tr.innerHTML=`
-      <td><input value="${cls.name}"></td>
-      <td><input type="number" min="1" value="${cls.cap}"></td>
-      <td><select>
+      <td><input value="${cls.name}" ${cls._lock? "disabled": ""}></td>
+      <td><input type="number" min="0" value="${cls.cap}" ${cls._lock? "disabled": ""} title="Kontenjan"></td>
+      <td><select ${cls._lock? "disabled": ""}>
         <option ${cls.level==8?"selected":""}>8</option>
         <option ${cls.level==7?"selected":""}>7</option>
         <option ${cls.level==6?"selected":""}>6</option>
         <option ${cls.level==5?"selected":""}>5</option>
       </select></td>
-      <td><select>${["","-"].concat(state.teachers.map(t=>`${t.id} • ${t.ad}`)).map(v=>`<option ${cls.teacherId && v.startsWith(cls.teacherId)?'selected':''}>${v}</option>`).join("")}</select></td>
-      <td><input type="number" min="1" value="${cls.rows}"></td>
-      <td><input type="number" min="1" value="${cls.cols}"></td>
-      <td><button data-id="${cls.id}" class="danger">Sil</button></td>
+      <td><select multiple size="3" class="tchSel" ${cls._lock? "disabled": ""}>${teacherOptions}</select></td>
+      <td><input type="number" min="1" value="${cls.rows}" disabled title="Satır otomatik hesaplanır"></td>
+      <td><input type="number" min="1" value="${cls.cols}" ${cls._lock? "disabled": ""} title="Sütun"></td>
+      <td>
+        <div class="inline" style="gap:6px">
+          <button data-edit="${cls.id}" class="btn-sm">${cls._lock? "Düzelt": "Kilitle"}</button>
+          <button data-id="${cls.id}" class="danger btn-sm">Sil</button>
+        </div>
+      </td>
     `;
-    const [nm,cap,lv,tc,rows,cols] = tr.querySelectorAll("input,select");
-    nm.oninput=()=>{cls.name=nm.value; saveLocal();};
-    cap.oninput=()=>{cls.cap=parseInt(cap.value||0); saveLocal();};
-    lv.onchange=()=>{cls.level=parseInt(lv.value); saveLocal();};
-    tc.onchange=()=>{ cls.teacherId = (tc.value.split("•")[0]||"").trim() || null; saveLocal(); };
-    rows.oninput=()=>{cls.rows=parseInt(rows.value||1); saveLocal();};
-    cols.oninput=()=>{cls.cols=parseInt(cols.value||1); saveLocal();};
-    tr.querySelector("button").onclick=()=>{ state.classes = state.classes.filter(x=>x.id!==cls.id); renderClassTable(); renderAssignArea(); saveLocal(); };
+
+    /* === Seçicileri DOĞRU bağla (önce index hatası vardı) === */
+    const nameInput = tr.querySelector('input[title="Kontenjan"]')?.previousElementSibling || tr.querySelector('td:first-child input');
+    const capInput  = tr.querySelector('input[title="Kontenjan"]');
+    const levelSel  = tr.querySelectorAll("select")[0];
+    const tchSel    = tr.querySelector(".tchSel");
+    const rowsInput = tr.querySelector('input[title="Satır otomatik hesaplanır"]');
+    const colsInput = tr.querySelector('input[title="Sütun"]');
+
+    /* güvenli: isim alanı */
+    const nm = tr.querySelector('td:first-child input');
+
+    (nm||nameInput).oninput=()=>{cls.name=(nm||nameInput).value; saveLocal();};
+
+    capInput.oninput=()=>{
+      const v = Math.max(0, parseInt(capInput.value||0));
+      cls.cap = v;
+      recomputeRows(cls); rowsInput.value = cls.rows;
+      saveLocal(); syncCounts();
+    };
+    levelSel.onchange=()=>{cls.level=parseInt(levelSel.value); saveLocal();};
+    tchSel.onchange=()=>{ cls.teacherIds = [...tchSel.selectedOptions].map(o=>o.value); saveLocal(); };
+
+    colsInput.oninput=()=>{
+      /* Neden: sütun değişince satır hesaplanmalı; kilitliyse zaten disabled olur */
+      const v = Math.max(1, parseInt(colsInput.value||1));
+      cls.cols = v;
+      recomputeRows(cls); rowsInput.value = cls.rows;
+      saveLocal();
+    };
+
+    tr.querySelector('button[data-id]').onclick=()=>{ if(confirm("Sınıf silinsin mi?")){ state.classes = state.classes.filter(x=>x.id!==cls.id); renderClassTable(); renderAssignArea(); saveLocal(); } };
+    tr.querySelector('button[data-edit]').onclick=()=>{ cls._lock = !cls._lock; renderClassTable(); saveLocal(); };
     tb.appendChild(tr);
   });
 }
 document.getElementById("btnAddClass").onclick=()=>{
-  state.classes.push({id:uid(), name:`Sınıf ${state.classes.length+1}`, cap:20, level:8, teacherId:null, rows:5, cols:4, students:[], seats:[]});
+  const c = {id:uid(), name:`Sınıf ${state.classes.length+1}`, cap:20, level:8, teacherIds:[], rows:5, cols:4, students:[], _lock:true};
+  recomputeRows(c);
+  state.classes.push(c);
   renderClassTable(); renderAssignArea(); saveLocal();
 };
 document.getElementById("btnClearClass").onclick=()=>{
   if(confirm("Tüm sınıflar silinsin mi?")){ state.classes=[]; renderClassTable(); renderAssignArea(); saveLocal(); }
 };
+document.getElementById("expCls").onclick=()=>downloadJSON("siniflar.json", state.classes);
+document.getElementById("impCls").addEventListener("click", e=>pickAndRead(e.target, data=>{
+  if(!Array.isArray(data)){ alert("Geçersiz sınıf dosyası."); return; }
+  state.classes = data.map(c=>normalizeClass({...c}));
+  renderClassTable(); renderAssignArea(); saveLocal(); alert("Sınıflar yüklendi.");
+}));
 
-/* ========= TAKVİM ========= */
+/* ===================== TAKVİM ===================== */
 document.getElementById("btnSaveExam").onclick=()=>{
   const date = document.getElementById("examDate").value;
   const level = parseInt(document.getElementById("examLevel").value);
   if(!date) return alert("Tarih seçin.");
-  const old = state.calendar.find(c=>c.level===level);
-  if(old) old.date=date; else state.calendar.push({level,date});
+  const existingIdx = state.calendar.findIndex(c=>c.level===level);
+  if(existingIdx>=0){ state.calendar[existingIdx].date = date; }
+  else { state.calendar.push({level,date}); }
   renderCalendar(); saveLocal();
 };
 function renderCalendar(){
   const root = document.getElementById("calendarList"); root.innerHTML="";
-  state.calendar.sort((a,b)=>a.level-b.level).forEach(c=>{
-    const d = document.createElement("div"); d.className="pill";
-    d.textContent = `${c.level}. Sınıf • ${c.date}`;
-    root.appendChild(d);
+  state.calendar.sort((a,b)=>a.level-b.level).forEach((c,idx)=>{
+    const row = document.createElement("div"); row.className="gap-8";
+    const text = document.createElement("div"); text.className="pill"; text.textContent = `${c.level}. Sınıf • ${fmtDate(c.date)}`;
+    const editBtn = document.createElement("button"); editBtn.className="btn-sm"; editBtn.textContent="Düzelt";
+    const delBtn  = document.createElement("button"); delBtn.className="btn-sm danger"; delBtn.textContent="Sil";
+    delBtn.onclick=()=>{ if(confirm(`${c.level}. sınıf deneme tarihi silinsin mi?`)){ state.calendar.splice(idx,1); renderCalendar(); saveLocal(); } };
+    editBtn.onclick=()=>startEditCalendar(idx);
+    row.appendChild(text); row.appendChild(editBtn); row.appendChild(delBtn);
+    root.appendChild(row);
   });
 }
+function startEditCalendar(idx){
+  const root = document.getElementById("calendarList");
+  const c = state.calendar[idx];
+  const row = document.createElement("div"); row.className="gap-8";
+  const editor = document.createElement("div"); editor.className="pill"; editor.style.display="flex"; editor.style.gap="8px"; editor.style.alignItems="center";
+  const sel = document.createElement("select");
+  [5,6,7,8].forEach(l=>{const op=document.createElement("option"); op.value=String(l); op.textContent=`${l}. Sınıf`; if(l===c.level) op.selected=true; sel.appendChild(op);});
+  const dt = document.createElement("input"); dt.type="date"; dt.value=c.date || "";
+  editor.appendChild(sel); editor.appendChild(dt);
+  const save = document.createElement("button"); save.className="btn-sm"; save.textContent="Kaydet";
+  const cancel = document.createElement("button"); cancel.className="btn-sm"; cancel.textContent="İptal";
+  save.onclick=()=>{
+    const newLevel = parseInt(sel.value), newDate = dt.value;
+    if(!newDate) return alert("Tarih seçin.");
+    const clash = state.calendar.findIndex((x,i)=>x.level===newLevel && i!==idx);
+    if(clash>=0){ alert(`${newLevel}. sınıf için zaten bir tarih var.`); return; }
+    state.calendar[idx] = {level:newLevel, date:newDate}; renderCalendar(); saveLocal();
+  };
+  cancel.onclick=()=>renderCalendar();
+  const list = [...root.children]; root.replaceChild(row, list[idx]);
+  row.appendChild(editor); row.appendChild(save); row.appendChild(cancel);
+}
+document.getElementById("expCal").onclick=()=>downloadJSON("takvim.json", state.calendar);
+document.getElementById("impCal").addEventListener("click", e=>pickAndRead(e.target, data=>{
+  if(!Array.isArray(data)){ alert("Geçersiz takvim dosyası."); return; }
+  state.calendar = data.filter(x=>x && typeof x.level==="number" && x.date);
+  renderCalendar(); saveLocal(); alert("Takvim yüklendi.");
+}));
 
-/* ========= ATAMA ========= */
+/* ===================== ATAMA ===================== */
 document.getElementById("filterLevel").onchange=()=>renderAssignArea();
 document.getElementById("sortBy").onchange=()=>renderAssignArea();
 
@@ -487,6 +626,14 @@ function getFilteredStudents(){
 }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
 
+function findAssignment(no){
+  for(const c of state.classes){
+    const idx = (c.students||[]).indexOf(no);
+    if(idx>=0) return {classId:c.id, index:idx};
+  }
+  return null;
+}
+
 function renderAssignArea(){
   const area = document.getElementById("assignArea"); area.innerHTML="";
   const levelSel = document.getElementById("filterLevel").value;
@@ -494,68 +641,191 @@ function renderAssignArea(){
   left.innerHTML = `<h3>${levelSel}. Sınıf Öğrenciler</h3><div id="pool" class="list drop"></div>`;
   area.appendChild(left);
   const pool = left.querySelector("#pool");
-  getFilteredStudents().forEach(st=>pool.appendChild(renderStudentChip(st)));
+
+  const all = getFilteredStudents();
+  const unassigned = [], assigned = [];
+  all.forEach(st => (findAssignment(st.no) ? assigned : unassigned).push(st));
+
+  unassigned.forEach(st=>pool.appendChild(renderStudentChip(st, "pool")));
+  if(assigned.length){
+    const sep=document.createElement("div"); sep.className="small"; sep.style.margin="6px 0"; sep.textContent="— Atanmışlar —";
+    pool.appendChild(sep);
+    assigned.forEach(st=>pool.appendChild(renderStudentChip(st, "pool-assigned")));
+  }
 
   state.classes.filter(c=>String(c.level)===String(levelSel)).forEach(cls=>{
-    if(!cls.students) cls.students=[];
+    normalizeClass(cls);
     const col = document.createElement("div"); col.className="col class-col";
+    const tchNames = teacherNames(cls.teacherIds).join(", ") || "-";
     col.innerHTML = `
-      <h3>${cls.name} <span class="small">(${cls.cap})</span></h3>
-      <div class="small">${cls.rows}×${cls.cols} oturma</div>
+      <h3>${cls.name} <span class="small">(${(cls.students||[]).length}/${cls.cap})</span></h3>
+      <div class="small">${cls.rows}×${cls.cols} oturma • Gözetmen: ${tchNames}</div>
       <div class="list drop" data-class="${cls.id}"></div>
     `;
     area.appendChild(col);
     const list = col.querySelector(".drop");
-    cls.students.forEach(no=>{
+    (cls.students||[]).forEach(no=>{
       const st = state.students.find(s=>s.no===no);
-      if(st) list.appendChild(renderStudentChip(st));
+      if(st) list.appendChild(renderStudentChip(st, "class", cls.id));
     });
   });
-  enableDnD();
-  syncCounts();
+
+  enableDnD(); syncCounts();
 }
-function renderStudentChip(st){
-  const el=document.createElement("div"); el.className="student"; el.draggable=true; el.dataset.no=st.no;
-  el.textContent = `${st.no} • ${st.adsoyad} • ${st.sinif}`;
+
+function renderStudentChip(st, where="pool", classId=null){
+  const el=document.createElement("div"); el.className="student"; el.dataset.no=st.no;
+  el.draggable = (where==="pool");
+  const meta = document.createElement("div"); meta.className="meta";
+  meta.textContent = `${st.no} • ${st.adsoyad} • ${st.sinif}`;
+  const act = document.createElement("div"); act.className="chip-actions";
+
+  if(where==="pool"){
+    const sel=document.createElement("select");
+    const levelSel = document.getElementById("filterLevel").value;
+    const targets = state.classes.filter(c=>String(c.level)===String(levelSel));
+    const opt0=document.createElement("option"); opt0.value=""; opt0.textContent="Sınıf Seç";
+    sel.appendChild(opt0);
+    targets.forEach(c=>{
+      const op=document.createElement("option"); op.value=c.id; op.textContent=`${c.name} (${(c.students||[]).length}/${c.cap})`;
+      sel.appendChild(op);
+    });
+    const btn=document.createElement("button"); btn.className="btn-sm"; btn.textContent="Ata";
+    btn.onclick=()=>{
+      const cid = sel.value;
+      if(!cid){ alert("Sınıf seçin."); return; }
+      const cls = state.classes.find(c=>c.id===cid);
+      if(!cls) return;
+      if((cls.students||[]).includes(st.no)){ alert(`${st.adsoyad} zaten ${cls.name} sınıfında.`); return; }
+      if((cls.students||[]).length >= cls.cap){ alert(`${cls.name} kapasitesi dolu.`); return; }
+      moveStudent(st.no, cid);
+      renderAssignArea(); saveLocal();
+    };
+    act.appendChild(sel); act.appendChild(btn);
+  }
+
+  if(where==="pool-assigned"){
+    el.classList.add("assigned");
+    el.draggable=false;
+    const info = findAssignment(st.no);
+    const clsName = state.classes.find(c=>c.id===info?.classId)?.name || "?";
+    const badge=document.createElement("span"); badge.className="chip-badge"; badge.textContent=`${clsName}`;
+    act.appendChild(badge);
+  }
+
+  if(where==="class"){
+    const rm=document.createElement("button"); rm.className="btn-sm"; rm.textContent="Çıkar";
+    rm.onclick=()=>{
+      const cls = state.classes.find(c=>c.id===classId);
+      if(!cls) return;
+      cls.students = (cls.students||[]).filter(x=>x!==st.no);
+      renderAssignArea(); saveLocal();
+    };
+    act.appendChild(rm);
+  }
+
+  el.appendChild(meta); el.appendChild(act);
   return el;
 }
+
 function enableDnD(){
   document.querySelectorAll(".drop").forEach(zone=>{
-    zone.addEventListener("dragover",e=>{e.preventDefault(); zone.style.outline=`2px solid var(--accent)`;});
+    zone.addEventListener("dragover",e=>{
+      const fromNo = e.dataTransfer.getData("text/plain");
+      if(!fromNo) return;
+      e.preventDefault();
+      zone.style.outline=`2px solid var(--accent)`;
+    });
     zone.addEventListener("dragleave",()=>zone.style.outline="");
     zone.addEventListener("drop",e=>{
       e.preventDefault(); zone.style.outline="";
       const no = e.dataTransfer.getData("text/plain");
-      const el = document.querySelector(`.student[data-no="${no}"]`);
-      if(!el) return;
-      const classId = zone.dataset.class || null;
-      moveStudent(no, classId);
-      zone.appendChild(el);
-      syncCounts(); saveLocal();
+      if(!no) return;
+      const targetClassId = zone.dataset.class || null;
+      const src = findAssignment(no)?.classId || null;
+
+      if(!targetClassId){
+        if(!src) return;
+        const cls = state.classes.find(c=>c.id===src);
+        cls.students = (cls.students||[]).filter(x=>x!==no);
+        renderAssignArea(); saveLocal();
+        return;
+      }
+
+      const target = state.classes.find(c=>c.id===targetClassId);
+      if((target.students||[]).includes(no)){
+        target.students = target.students.filter(x=>x!==no);
+        target.students.push(no);
+        renderAssignArea(); saveLocal();
+        return;
+      }
+      if((target.students||[]).length >= target.cap){
+        alert(`${target.name} kapasitesi dolu.`);
+        return;
+      }
+      moveStudent(no, targetClassId);
+      renderAssignArea(); saveLocal();
     });
   });
-  document.querySelectorAll(".student").forEach(s=>{
-    s.addEventListener("dragstart",e=>{
-      e.dataTransfer.setData("text/plain", s.dataset.no);
+
+  document.querySelectorAll(".student").forEach(chip=>{
+    chip.addEventListener("dragstart",e=>{
+      if(chip.classList.contains("assigned")){ e.preventDefault(); return; }
+      e.dataTransfer.setData("text/plain", chip.dataset.no);
+    });
+    chip.addEventListener("dragover",e=>{
+      const overNo = chip.dataset.no;
+      const dragNo = e.dataTransfer.getData("text/plain");
+      if(!dragNo || dragNo===overNo) return;
+      e.preventDefault();
+    });
+    chip.addEventListener("drop",e=>{
+      e.preventDefault();
+      const dragNo = e.dataTransfer.getData("text/plain");
+      const dropNo = chip.dataset.no;
+      if(!dragNo || dragNo===dropNo) return;
+
+      const a = findAssignment(dragNo);
+      const b = findAssignment(dropNo);
+      const aName = state.students.find(s=>s.no===dragNo)?.adsoyad || dragNo;
+      const bName = state.students.find(s=>s.no===dropNo)?.adsoyad || dropNo;
+
+      openSwapModal(aName, bName, ()=>{
+        if(a && b){
+          const clsA = state.classes.find(c=>c.id===a.classId);
+          const clsB = state.classes.find(c=>c.id===b.classId);
+          clsA.students[a.index] = dropNo;
+          clsB.students[b.index] = dragNo;
+        }else if(!a && b){
+          const clsB = state.classes.find(c=>c.id===b.classId);
+          clsB.students[b.index] = dragNo;
+          state.classes.forEach(c=>{ c.students = (c.students||[]).filter(x=>x!==dragNo); });
+        }else if(a && !b){
+          moveStudent(dragNo, a.classId);
+        }
+        renderAssignArea(); saveLocal();
+      });
     });
   });
 }
 function moveStudent(no, classId){
+  const target = state.classes.find(c=>c.id===classId);
+  if(!target) return;
+  if((target.students||[]).includes(no)) return;
   state.classes.forEach(c=>{ c.students = (c.students||[]).filter(x=>x!==no); });
-  if(!classId) return;
-  const cls = state.classes.find(c=>c.id===classId); if(!cls) return;
-  if((cls.students||[]).length >= cls.cap){ alert(`${cls.name} kapasitesi dolu.`); return; }
-  cls.students.push(no);
+  if((target.students||[]).length >= target.cap){ alert(`${target.name} kapasitesi dolu.`); return; }
+  target.students.push(no);
 }
 function syncCounts(){
   state.classes.forEach(c=>{
     const col = [...document.querySelectorAll(`[data-class="${c.id}"]`)].pop();
     if(!col) return;
-    const count = col.querySelectorAll(".student").length;
+    const count = (c.students||[]).length;
     col.parentElement.querySelector("h3").innerHTML = `${c.name} <span class="small">(${count}/${c.cap})</span>`;
     col.style.borderColor = count>c.cap ? "var(--danger)" : "var(--border)";
   });
 }
+
 document.getElementById("btnAutoAssign").onclick=()=>{
   const level = document.getElementById("filterLevel").value;
   const pool = getFilteredStudents().map(s=>s.no);
@@ -563,9 +833,7 @@ document.getElementById("btnAutoAssign").onclick=()=>{
   let idx=0;
   state.classes.filter(c=>String(c.level)===String(level)).forEach(c=>{
     c.students=[];
-    for(let k=0;k<c.cap && idx<pool.length;k++,idx++){
-      c.students.push(pool[idx]);
-    }
+    for(let k=0;k<c.cap && idx<pool.length;k++,idx++){ c.students.push(pool[idx]); }
   });
   renderAssignArea(); saveLocal();
 };
@@ -577,74 +845,144 @@ document.getElementById("btnClearAssign").onclick=()=>{
 document.getElementById("btnShuffle").onclick=()=>{
   const level = document.getElementById("filterLevel").value;
   const all = state.classes.filter(c=>String(c.level)===String(level)).flatMap(c=>c.students);
-  shuffle(all);
+  for(let i=all.length-1;i>0;i--){ const j=Math.random()* (i+1) | 0; [all[i],all[j]]=[all[j],all[i]]; }
   let p=0;
-  state.classes.filter(c=>String(c.level)===String(level)).forEach(c=>{
-    c.students = all.slice(p, p+c.cap); p+=c.cap;
-  });
+  state.classes.filter(c=>String(c.level)===String(level)).forEach(c=>{ c.students = all.slice(p, p+c.cap); p+=c.cap; });
   renderAssignArea(); saveLocal();
 };
+document.getElementById("expAssign").onclick=()=>{
+  const payload = state.classes.map(c=>({id:c.id, name:c.name, level:c.level, students:c.students||[]}));
+  downloadJSON("atamalar.json", payload);
+};
+document.getElementById("impAssign").addEventListener("click", e=>pickAndRead(e.target, data=>{
+  if(!Array.isArray(data)){ alert("Geçersiz atama dosyası."); return; }
+  data.forEach(item=>{
+    const cls = state.classes.find(c=>c.id===item.id) || state.classes.find(c=>c.name===item.name && c.level===item.level);
+    if(cls) cls.students = (item.students||[]).slice(0, cls.cap);
+  });
+  renderAssignArea(); saveLocal(); alert("Atamalar yüklendi.");
+}));
 
-/* ========= YAZDIR ========= */
+/* ===================== YAZDIR ===================== */
 function printLists(){
   const root = document.getElementById("printRoot"); root.innerHTML=""; root.classList.remove("hidden");
   state.classes.forEach(cls=>{
     const lvlCal = state.calendar.find(x=>x.level===cls.level);
-    const div = document.createElement("div"); div.className="print-page";
-    div.innerHTML = `
+    const page = document.createElement("div"); page.className="print-page print-list";
+    const inv = teacherNames(cls.teacherIds).join(", ") || "-";
+
+    const assignedCount = (cls.students||[]).length;
+    const cap = Math.max(0, parseInt(cls.cap||0));
+    const pct = cap>0 ? Math.round((assignedCount*100)/cap) : 0;
+
+    page.innerHTML = `
       <div class="print-title">${cls.name} — ${cls.level}. Sınıf Deneme Listesi</div>
-      <div class="print-sub">Sınav Tarihi: ${(lvlCal?.date)||"-"} • Gözetmen: ${teacherName(cls.teacherId)||"-"}</div>
+      <div class="print-sub">Sınav Tarihi: ${fmtDate(lvlCal?.date)} • Gözetmen: ${inv} • Kapasite: ${cap} • Doluluk: ${assignedCount}/${cap} (%${pct})</div>
       <table><thead><tr><th>#</th><th>NO</th><th>AD SOYAD</th><th>SINIF</th><th>İmza</th></tr></thead><tbody></tbody></table>
     `;
-    const tbody = div.querySelector("tbody");
+    const tbody = page.querySelector("tbody");
     (cls.students||[]).map(no=>state.students.find(s=>s.no===no)).forEach((st,i)=>{
       const tr=document.createElement("tr");
       tr.innerHTML=`<td>${i+1}</td><td>${st?.no||""}</td><td>${st?.adsoyad||""}</td><td>${st?.sinif||""}</td><td></td>`;
       tbody.appendChild(tr);
     });
-    root.appendChild(div);
-  });
-  window.print();
-  root.classList.add("hidden");
-}
-function printSeating(){
-  const root = document.getElementById("printRoot"); root.innerHTML=""; root.classList.remove("hidden");
-  state.classes.forEach(cls=>{
-    const page = document.createElement("div"); page.className="print-page";
-    const lvlCal = state.calendar.find(x=>x.level===cls.level);
-    page.innerHTML = `
-      <div class="print-title">${cls.name} — Oturma Planı</div>
-      <div class="print-sub">Tarih: ${(lvlCal?.date)||"-"} • Düzey: ${cls.level} • Gözetmen: ${teacherName(cls.teacherId)||"-"}</div>
-      <table><tbody></tbody></table>
-    `;
-    const tb = page.querySelector("tbody");
-    const seats = fillSeats(cls);
-    for(let r=0;r<cls.rows;r++){
-      const tr=document.createElement("tr");
-      for(let c=0;c<cls.cols;c++){
-        const st = seats[r*cls.cols+c] || "";
-        tr.innerHTML += `<td style="width:${Math.round(100/cls.cols)}%;height:46px;padding:6px">${st}</td>`;
-      }
-      tb.appendChild(tr);
-    }
     root.appendChild(page);
   });
   window.print();
   root.classList.add("hidden");
 }
-function fillSeats(cls){
-  const arr = (cls.students||[]).map(no=>state.students.find(s=>s.no===no)?.adsoyad || "");
-  const total = cls.rows*cls.cols;
-  while(arr.length<total) arr.push("");
-  return arr.slice(0,total);
-}
-function teacherName(id){
-  if(!id) return null;
-  const t = state.teachers.find(x=>x.id===id);
-  return t? t.ad : null;
+
+/* === Izgara (satır × sütun) oturma planı yazdır + Doluluk === */
+function printSeating(){
+  const root = document.getElementById("printRoot"); root.innerHTML=""; root.classList.remove("hidden");
+
+  state.classes.forEach(cls=>{
+    const page = document.createElement("div"); page.className="print-page";
+    const lvlCal = state.calendar.find(x=>x.level===cls.level);
+    const inv = teacherNames(cls.teacherIds).join(", ") || "-";
+
+    const assigned = (cls.students||[]).map(no=>state.students.find(s=>s.no===no)?.adsoyad || "");
+    const assignedCount = assigned.filter(Boolean).length;
+    const cap = Math.max(0, parseInt(cls.cap||0));
+    const pct = cap>0 ? Math.round((assignedCount*100)/cap) : 0;
+
+    const totalSeats = Math.max(cls.cap, cls.rows * cls.cols); // görünüm tam olsun
+
+    page.innerHTML = `
+      <div class="print-title">${cls.name} — Oturma Planı (${cls.rows}×${cls.cols})</div>
+      <div class="print-sub">Tarih: ${fmtDate(lvlCal?.date)} • Düzey: ${cls.level} • Gözetmen: ${inv} • Kapasite: ${cap} • Doluluk: ${assignedCount}/${cap} (%${pct})</div>
+    `;
+
+    const grid = document.createElement("div");
+    grid.className = "seat-grid";
+    grid.style.setProperty("--cols", String(Math.max(1, parseInt(cls.cols||1))));
+    const rows = Math.max(1, parseInt(cls.rows||1));
+    const cols = Math.max(1, parseInt(cls.cols||1));
+
+    let idx=0;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        if(idx>=totalSeats) break;
+        const name = assigned[idx] || "Boş";
+        grid.appendChild(buildSeatCard(idx+1, name));
+        idx++;
+      }
+    }
+
+    page.appendChild(grid);
+    root.appendChild(page);
+  });
+
+  window.print();
+  root.classList.add("hidden");
 }
 
-/* ========= TEMA ========= */
+/* Sıra (desk) ikonu + isim etiketi */
+function buildSeatCard(idx, name){
+  const el = document.createElement("div");
+  el.className = "seat";
+  el.innerHTML = `
+    <div class="idx">${idx}</div>
+    <svg viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg" aria-label="Sıra">
+      <rect x="10" y="20" rx="6" ry="6" width="100" height="28" fill="none" stroke="#000" stroke-width="2"/>
+      <line x1="20" y1="48" x2="20" y2="64" stroke="#000" stroke-width="2"/>
+      <line x1="100" y1="48" x2="100" y2="64" stroke="#000" stroke-width="2"/>
+      <rect x="42" y="4" rx="4" ry="4" width="36" height="10" fill="none" stroke="#000" stroke-width="2"/>
+      <line x1="48" y1="14" x2="48" y2="20" stroke="#000" stroke-width="2"/>
+      <line x1="84" y1="14" x2="84" y2="20" stroke="#000" stroke-width="2"/>
+    </svg>
+    <div class="nm">${name}</div>
+  `;
+  return el;
+}
+
+/* ===================== MODAL ===================== */
+function openSwapModal(nameA, nameB, onConfirm){
+  const root = document.getElementById("modalRoot");
+  root.classList.remove("hidden");
+  root.innerHTML = `
+    <div class="modal-backdrop">
+      <div class="modal">
+        <h3>Yer Değiştirme Onayı</h3>
+        <div class="small">Aşağıdaki öğrencilerin yerleri değiştirilsin mi?</div>
+        <div class="pill" style="margin-top:8px">${nameA}</div>
+        <div style="text-align:center;margin:6px 0">↕</div>
+        <div class="pill">${nameB}</div>
+        <div class="btns">
+          <button id="swapCancel" class="btn-sm">İptal</button>
+          <button id="swapOk" class="btn-sm">Değiştir</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("swapCancel").onclick=()=>{ root.classList.add("hidden"); root.innerHTML=""; };
+  document.getElementById("swapOk").onclick=()=>{
+    try{ onConfirm && onConfirm(); } finally {
+      root.classList.add("hidden"); root.innerHTML="";
+    }
+  };
+}
+
+/* ===================== TEMA ===================== */
 const btnTheme = document.getElementById("btnTheme");
 btnTheme.addEventListener("click", ()=>{
   state.cfg.theme = state.cfg.theme==="light" ? "dark" : "light";
@@ -660,30 +998,7 @@ function applyTheme(){
   }
 }
 
-/* ========= JSON ========= */
-document.getElementById("btnExportJson").onclick=()=>{
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
-  const a = document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download=`deneme-oturma-${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href);
-};
-document.getElementById("importJson").addEventListener("change", (e)=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const obj=JSON.parse(r.result); Object.assign(state, obj);
-      document.getElementById("sheetId").value=state.cfg.sheetId;
-      document.getElementById("sheetStudentTab").value=state.cfg.tabStudents;
-      document.getElementById("sheetTeacherTab").value=state.cfg.tabTeachers;
-      applyTheme();
-      renderSamples(); renderClassTable(); renderAssignArea(); renderCalendar(); saveLocal();
-      alert("JSON yüklendi.");
-    }catch(err){ alert("JSON okunamadı."); }
-  };
-  r.readAsText(f);
-});
-
-/* ========= Yardımcı ========= */
+/* ===================== Bootstrap ===================== */
 async function wrap(promise){
   try{ await promise(); }
   catch(err){ console.error(err); alert(err.message||String(err)); }
@@ -694,8 +1009,9 @@ async function wrap(promise){
     document.getElementById("sheetStudentTab").value=state.cfg.tabStudents;
     document.getElementById("sheetTeacherTab").value=state.cfg.tabTeachers;
   }
+  state.classes = state.classes.map(c=>normalizeClass(c));
   applyTheme();
-  renderSamples(); renderClassTable(); renderAssignArea(); renderCalendar();
+  renderPeopleLists(); renderClassTable(); renderAssignArea(); renderCalendar();
 })();
 </script>
 </body>
