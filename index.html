@@ -59,7 +59,7 @@
   .hidden{display:none !important}
   
   .wrap{
-    max-width:1200px;
+    max-width:1400px; /* Geniş ekranlar için alan artırıldı */
     margin: 40px auto;
     padding: 24px;
     border-radius: var(--radius-lg);
@@ -105,6 +105,7 @@
     background: var(--field); color:var(--text);
     font-size: 0.9rem; transition: all 0.2s;
   }
+  input[type="date"] { cursor: pointer; }
   input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow: var(--focus-ring); }
   
   button{ width:auto; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px; justify-content:center; }
@@ -122,7 +123,7 @@
   .btn-sm{ padding: 6px 10px; font-size: 0.8rem; border-radius: 8px; }
   .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
 
-  /* ====== Gözetmen Çoklu Seçim (Custom Dropdown) ====== */
+  /* ====== Gözetmen Çoklu Seçim ====== */
   .multi-select-container { position: relative; width: 100%; }
   .multi-select-btn {
     text-align: left; background: var(--field); border: 1px solid var(--border);
@@ -165,20 +166,64 @@
     font-size: 0.9rem;
   }
   
-  /* ====== Sürükle Bırak ====== */
-  .drop-zone {
-    min-height: 120px; background: var(--field);
-    border: 2px dashed var(--border); border-radius: var(--radius);
-    padding: 8px; transition: all 0.2s ease;
+  /* ====== Sürükle Bırak & Yeni Atama Dizaynı ====== */
+  .assign-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
   }
-  .drop-zone.drag-over { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+  .pool-panel {
+    flex: 0 0 300px;
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    position: sticky;
+    top: 20px;
+  }
+  .classes-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .class-drop-zone {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-height: 200px;
+    transition: all 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .class-drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .pool-list {
+    min-height: 200px;
+  }
 
   .draggable-chip {
-    padding: 8px 12px; margin-bottom: 6px;
+    padding: 8px 12px; margin-bottom: 8px;
     background: var(--card); border: 1px solid var(--border);
     border-radius: 8px; cursor: grab;
     display:flex; justify-content:space-between; align-items:center;
     user-select: none; transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  /* Pool içindeki chipler biraz farklı görünsün */
+  .pool-list .draggable-chip {
+    background: var(--card);
+    border-left: 3px solid var(--warn);
+  }
+  /* Sınıf içindeki chipler */
+  .class-drop-zone .draggable-chip {
+    background: var(--field);
+    border-left: 3px solid var(--ok);
   }
   .draggable-chip:active { cursor: grabbing; transform: scale(0.98); }
   
@@ -193,32 +238,56 @@
   .kpi-val { font-size:1.5rem; font-weight:700; color:var(--accent); }
   .kpi-lbl { font-size:0.8rem; color:var(--muted); }
 
-  /* ====== Yazdırma ve SVG ====== */
+  /* ====== Yazdırma ====== */
   @media print {
-    body, .wrap { background:white; color:black; border:none; box-shadow:none; margin:0; padding:0; width:100%; overflow:visible; }
+    body, .wrap { 
+      background:white; color:black !important; 
+      border:none; box-shadow:none; margin:0; padding:0; width:100%; overflow:visible; 
+    }
     .no-print, .tabs, .app-header, .toolbar, button, .firebase-btn { display:none !important; }
     .print-page { page-break-after: always; margin: 20px; }
     
     /* Liste Yazdırma */
-    .print-list-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; }
-    .print-list-table th, .print-list-table td { border: 1px solid #000; padding: 6px; }
+    .print-list-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; color: #000; }
+    .print-list-table th, .print-list-table td { 
+      border: 1px solid #000; padding: 8px; color: #000; 
+    }
+    .print-list-table th { text-align: center; background: #eee; -webkit-print-color-adjust: exact; }
     .print-list-table td:nth-child(3) { font-weight: bold; font-size: 1.1em; } /* İsim Kalın */
 
-    /* Oturma Planı Yazdırma (SVG) */
+    /* Oturma Planı Yazdırma */
     .seat-grid {
       display:grid;
-      grid-template-columns: repeat(var(--cols), minmax(90px, 1fr));
-      gap:10px; align-items:start;
+      /* Grid sütunları dışarıdan JS ile verilecek */
+      grid-template-columns: repeat(var(--cols), 1fr); 
+      gap: 15px; 
+      justify-content: center;
+      margin-top: 20px;
     }
+    /* SIRA ÇİZİMİ (SABİT BOYUT) */
     .seat {
-      display:flex; flex-direction:column; align-items:center; gap:6px;
-      border:1px solid #000; padding:6px; border-radius:10px;
+      display:flex; flex-direction:column; align-items:center;
+      width: 110px; /* Sabit Genişlik */
+      height: 90px; /* Sabit Yükseklik */
+      position: relative;
     }
-    .seat svg { width:70px; height:44px; display:block; }
-    .seat .idx { font:700 11px Arial; color:#000; }
+    .seat svg { 
+      width: 100%; height: 100%; display:block; overflow: visible;
+    }
+    .seat .seat-content {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding-top: 15px; /* Çizimdeki masa üstüne denk gelmesi için */
+      z-index: 2;
+    }
+    .seat .idx { font: 700 10px Arial; color:#000; position: absolute; top:0; left:50%; transform:translateX(-50%); }
     .seat .nm {
-      font:12px/1.2 Arial; color:#000; font-weight: bold;
-      max-width:120px; white-space:normal; word-break:break-word; text-align:center;
+      font: bold 11px Arial; color:#000; text-align:center;
+      width: 90px; 
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* Taşarsa üç nokta */
+      background: rgba(255,255,255,0.8);
+      padding: 1px 4px;
     }
   }
 </style>
@@ -366,7 +435,7 @@
       <div class="row" style="align-items:end">
         <div class="col" style="flex:0 0 200px">
           <label>Tarih</label>
-          <input type="date" id="calDate">
+          <input type="date" id="calDate" style="cursor:pointer;" onclick="this.showPicker()">
         </div>
         <div class="col" style="flex:0 0 150px">
           <label>Düzey</label>
@@ -405,20 +474,26 @@
           <div class="inline">
              <label style="margin:0; margin-right:8px">Sırala:</label>
              <select id="assignSort" style="width:auto">
+               <option value="rand">Tam Karışık</option>
                <option value="ad">Ada göre</option>
                <option value="soyad">Soyada göre</option>
                <option value="no">Numaraya göre</option>
                <option value="sinif">Sınıfa göre</option>
-               <option value="rand">Rastgele</option>
              </select>
           </div>
-          <button id="btnAutoDistribute" class="primary btn-sm">Otomatik Atama</button>
+          <button id="btnAutoDistribute" class="primary btn-sm">Otomatik Dağıt</button>
           <button id="btnClearAssign" class="danger btn-sm">Temizle</button>
         </div>
       </div>
       
-      <div class="row" id="assignContainer" style="align-items:start">
+      <div class="assign-layout">
+        <div class="pool-panel">
+          <h3 style="margin-top:0; border-bottom:1px solid var(--border); padding-bottom:8px;">Öğrenci Havuzu</h3>
+          <div id="assignPoolList" class="drop-zone pool-list" data-type="pool"></div>
         </div>
+
+        <div id="assignClassGrid" class="classes-grid"></div>
+      </div>
     </div>
   </section>
 
@@ -478,7 +553,6 @@
 
 <script>
 /* ================= GLOBAL STATE ================= */
-// 1. İSTEK: Varsayılan ID tanımlandı
 const state = {
   cfg: { 
     sheetId: "1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw", 
@@ -493,6 +567,15 @@ const state = {
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).substr(2, 9);
 const normalize = s => (s||"").toString().toLowerCase().trim().replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c").replace(/\s/g,"");
+
+// Gelişmiş Karıştırma: Fisher-Yates Shuffle
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
 /* ================= FIREBASE HANDLERS ================= */
 document.addEventListener('DOMContentLoaded', () => {
@@ -596,14 +679,13 @@ function renderDataLists(){
   $('kpiTch').textContent = state.teachers.length;
 }
 
-/* ================= SINIF & GÖZETMEN (Gelişmiş) ================= */
+/* ================= SINIF & GÖZETMEN ================= */
 $('btnAddClass').onclick = () => {
   state.classes.push({ id: uid(), name: `Sınıf ${state.classes.length+1}`, cap: 20, level: 8, teacherIds: [], rows: 5, cols: 4, students: [] });
   renderClassTable();
 };
 $('btnClearClasses').onclick = () => { if(confirm('Silinsin mi?')) { state.classes = []; renderClassTable(); } };
 
-// 4. İSTEK: Gözetmen seçim alanını geliştir (Dropdown Checkbox)
 function createTeacherSelector(classId, selectedIds) {
   const container = document.createElement('div');
   container.className = 'multi-select-container';
@@ -628,8 +710,6 @@ function createTeacherSelector(classId, selectedIds) {
       const cls = state.classes.find(c => c.id === classId);
       if(chk.checked) cls.teacherIds.push(t.id);
       else cls.teacherIds = cls.teacherIds.filter(id => id !== t.id);
-      
-      // Buton yazısını güncelle
       const newNames = state.teachers.filter(teacher => cls.teacherIds.includes(teacher.id)).map(teacher => teacher.ad);
       btn.textContent = newNames.length > 0 ? newNames.join(', ') : 'Gözetmen Seç...';
     };
@@ -652,7 +732,6 @@ function createTeacherSelector(classId, selectedIds) {
   return container;
 }
 
-// Dropdown dışına tıklanınca kapat
 document.addEventListener('click', () => {
   document.querySelectorAll('.multi-select-dropdown').forEach(d => d.classList.remove('show'));
 });
@@ -660,6 +739,7 @@ document.addEventListener('click', () => {
 function renderClassTable(){
   const tbody = $('tbodyClasses'); tbody.innerHTML = '';
   state.classes.forEach(cls => {
+    // Kapasite değişirse satır sayısını otomatik ayarla (örnek mantık)
     cls.rows = Math.ceil((parseInt(cls.cap)||1) / (parseInt(cls.cols)||1));
     const tr = document.createElement('tr');
     
@@ -679,9 +759,7 @@ function renderClassTable(){
       <td><button class="danger btn-sm" onclick="deleteClass('${cls.id}')">Sil</button></td>
     `;
     
-    // Gözetmen seçiciyi ekle
     tr.querySelector('.td-teacher').appendChild(createTeacherSelector(cls.id, cls.teacherIds || []));
-    
     tbody.appendChild(tr);
   });
   $('kpiCls').textContent = state.classes.length;
@@ -695,7 +773,7 @@ window.deleteClass = (id) => {
   if(confirm('Sınıfı silmek istediğine emin misin?')) { state.classes = state.classes.filter(x => x.id !== id); renderClassTable(); }
 };
 
-/* ================= TAKVİM (2. İSTEK) ================= */
+/* ================= TAKVİM ================= */
 $('btnAddExam').onclick = () => {
   const d = $('calDate').value; 
   if(!d) return alert('Tarih seçin');
@@ -719,11 +797,10 @@ function renderCalendar(){
 }
 window.delCalendar = (lvl) => { state.calendar = state.calendar.filter(c => c.level !== lvl); renderCalendar(); };
 
-/* ================= ATAMA & DRAG DROP (Gelişmiş) ================= */
+/* ================= ATAMA & DRAG DROP (PROFESYONEL UI) ================= */
 $('assignLevelFilter').onchange = renderAssignUI;
 $('assignSort').onchange = renderAssignUI;
 
-// 3. İSTEK: Otomatik Atama Seçenekleri Arttırıldı (Soyad, Rastgele)
 function getStudentsForAssign(){
   const lvl = $('assignLevelFilter').value;
   let arr = state.students.filter(s => s.sinif.startsWith(lvl));
@@ -734,55 +811,59 @@ function getStudentsForAssign(){
   if(sort === 'sinif') arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr'));
   
   if(sort === 'soyad') {
-    // Soyad bulma (son kelime)
     const getSurname = (fullName) => fullName.trim().split(' ').pop();
     arr.sort((a,b) => getSurname(a.adsoyad).localeCompare(getSurname(b.adsoyad), 'tr'));
   }
   
+  // Fisher-Yates Kullanımı
   if(sort === 'rand') {
-    arr.sort(() => Math.random() - 0.5);
+    arr = shuffleArray(arr);
   }
   
   return arr;
 }
 
 function renderAssignUI(){
-  const container = $('assignContainer'); container.innerHTML = '';
+  const poolList = $('assignPoolList'); poolList.innerHTML = '';
+  const classGrid = $('assignClassGrid'); classGrid.innerHTML = '';
+  
   const lvl = $('assignLevelFilter').value;
   const students = getStudentsForAssign();
   
-  // Havuz
-  const poolCol = document.createElement('div');
-  poolCol.className = 'col'; poolCol.style.flex = "0 0 280px";
+  // 1. Havuzu Doldur
   const assignedSet = new Set();
   state.classes.forEach(c => { if(c.students) c.students.forEach(s => assignedSet.add(s)); });
-  
-  const poolList = document.createElement('div');
-  poolList.className = 'drop-zone'; poolList.dataset.type = 'pool';
-  poolList.innerHTML = `<h3 style="margin-top:0; font-size:1rem; color:var(--muted)">Öğrenci Havuzu (${lvl}. Sınıf)</h3>`;
   
   students.forEach(s => {
     if(!assignedSet.has(s.no)) poolList.appendChild(createChip(s));
   });
-  poolCol.appendChild(poolList); container.appendChild(poolCol);
   
-  // Sınıflar
+  // 2. Sınıf Gridini Doldur
   state.classes.filter(c => c.level == lvl).forEach(c => {
-    const col = document.createElement('div'); col.className = 'col';
     const zone = document.createElement('div');
-    zone.className = 'drop-zone'; zone.dataset.type = 'class'; zone.dataset.id = c.id;
+    zone.className = 'class-drop-zone drop-zone'; 
+    zone.dataset.type = 'class'; 
+    zone.dataset.id = c.id;
     
     const current = (c.students || []).length;
     zone.innerHTML = `
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px">
-        <b>${c.name}</b> <span class="${current>c.cap ? 'text-danger':''}">${current}/${c.cap}</span>
-      </div>`;
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+        <span style="font-weight:bold; color:var(--accent)">${c.name}</span> 
+        <span style="font-size:0.85rem; ${current>c.cap ? 'color:var(--danger)':'color:var(--muted)'}">
+          ${current} / ${c.cap}
+        </span>
+      </div>
+      <div style="flex:1; overflow-y:auto; min-height:50px;">
+        </div>
+    `;
     
+    const container = zone.querySelector('div:last-child');
     (c.students || []).forEach(sNo => {
       const st = state.students.find(x => x.no === sNo) || {no:sNo, adsoyad:'?', sinif:'?'};
-      zone.appendChild(createChip(st, c.id));
+      container.appendChild(createChip(st, c.id));
     });
-    col.appendChild(zone); container.appendChild(col);
+    
+    classGrid.appendChild(zone);
   });
   
   initDragAndDrop();
@@ -800,9 +881,9 @@ function createChip(student, currentClassId = null) {
   return el;
 }
 
-/* ================= 5. İSTEK: SWAP (CHANGE) OLAYI ================= */
 function initDragAndDrop() {
   const chips = document.querySelectorAll('.draggable-chip');
+  // drop-zone classı hem pool hem class divlerinde var
   const zones = document.querySelectorAll('.drop-zone');
   
   chips.forEach(chip => {
@@ -813,14 +894,13 @@ function initDragAndDrop() {
     });
     chip.addEventListener('dragend', () => { chip.style.opacity = '1'; zones.forEach(z => z.classList.remove('drag-over')); });
     
-    // 5. İSTEK: Çipin üzerine bırakılırsa swap yap
+    // Swap için chip üzerine drop
     chip.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
     chip.addEventListener('drop', e => {
       e.preventDefault(); e.stopPropagation();
       const draggedNo = e.dataTransfer.getData('text/plain');
       const targetNo = chip.dataset.no;
       if(draggedNo === targetNo) return;
-      
       handleSwap(draggedNo, targetNo);
     });
   });
@@ -833,11 +913,9 @@ function initDragAndDrop() {
       const studentNo = e.dataTransfer.getData('text/plain');
       if(!studentNo) return;
       
-      // Boş alana bırakma mantığı
       const targetClassId = zone.dataset.id;
       const targetType = zone.dataset.type;
       
-      // Mevcut konumu bul
       let sourceClassId = null;
       state.classes.forEach(c => { if((c.students||[]).includes(studentNo)) sourceClassId = c.id; });
       
@@ -849,7 +927,7 @@ function initDragAndDrop() {
         if(!targetClass.students) targetClass.students = [];
         if(targetClass.students.length >= targetClass.cap) return alert('Kapasite dolu!');
         
-        if(sourceClassId) { // Eski yerden sil
+        if(sourceClassId) { 
           const src = state.classes.find(c => c.id === sourceClassId);
           src.students = src.students.filter(x => x !== studentNo);
         }
@@ -860,22 +938,16 @@ function initDragAndDrop() {
   });
 }
 
-// 5. İSTEK: Takas Mantığı
 function handleSwap(no1, no2) {
   let c1 = null, c2 = null;
   state.classes.forEach(c => { if((c.students||[]).includes(no1)) c1 = c; });
   state.classes.forEach(c => { if((c.students||[]).includes(no2)) c2 = c; });
   
-  if(!c1 || !c2) return; // Biri havuzdaysa swap yapma (basitlik için)
-  
-  // Öğrencilerin dizideki indekslerini bul
+  if(!c1 || !c2) return; 
   const idx1 = c1.students.indexOf(no1);
   const idx2 = c2.students.indexOf(no2);
-  
-  // Yerlerini değiştir
   c1.students[idx1] = no2;
   c2.students[idx2] = no1;
-  
   renderAssignUI();
 }
 
@@ -886,24 +958,34 @@ function removeFromClass(no, classId){
 
 $('btnAutoDistribute').onclick = () => {
   const lvl = $('assignLevelFilter').value;
-  const students = getStudentsForAssign();
+  const students = getStudentsForAssign(); // Zaten shuffle edildi eğer 'rand' seçiliyse
   const targets = state.classes.filter(c => c.level == lvl);
   targets.forEach(c => c.students = []);
+  
   let stIdx = 0;
-  targets.forEach(c => {
-    for(let i=0; i<c.cap; i++){
-      if(stIdx < students.length) { if(!c.students) c.students=[]; c.students.push(students[stIdx].no); stIdx++; }
-    }
-  });
+  // Basit dağıtım yerine sırayla dağıtım (homojenlik için)
+  let loop = true;
+  while(loop && stIdx < students.length) {
+      loop = false;
+      for(let c of targets) {
+          if(!c.students) c.students = [];
+          if(c.students.length < c.cap && stIdx < students.length) {
+              c.students.push(students[stIdx].no);
+              stIdx++;
+              loop = true;
+          }
+      }
+  }
+  
   renderAssignUI();
 };
 $('btnClearAssign').onclick = () => {
   if(confirm('Temizlensin mi?')){ const lvl = $('assignLevelFilter').value; state.classes.filter(c => c.level == lvl).forEach(c => c.students = []); renderAssignUI(); }
 };
 
-/* ================= 6. İSTEK: YAZDIRMA & SVG ================= */
+/* ================= YAZDIRMA & SVG GÜNCELLEMESİ ================= */
 const app = {
-  printList: () => { // İsimler kalın
+  printList: () => {
     const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
     state.classes.forEach(c => {
       const page = document.createElement('div'); page.className = 'print-page';
@@ -912,8 +994,8 @@ const app = {
       const dFormatted = cal ? new Date(cal).toLocaleDateString('tr-TR') : "-";
       
       let html = `
-        <h2 style="text-align:center; margin-bottom:10px">${c.name} - Sınav İmza Listesi</h2>
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-family:Arial">
+        <h2 style="text-align:center; margin-bottom:10px; color:#000;">${c.name} - Sınav İmza Listesi</h2>
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-family:Arial; color:#000;">
            <span>Tarih: ${dFormatted}</span> <span>Gözetmen: ${tch}</span>
         </div>
         <table class="print-list-table">
@@ -931,7 +1013,7 @@ const app = {
     window.print(); area.classList.add('hidden');
   },
   
-  printSeating: () => { // 6. İSTEK: Masa/Sandalye SVG
+  printSeating: () => {
     const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
     state.classes.forEach(c => {
       const page = document.createElement('div'); page.className = 'print-page';
@@ -943,25 +1025,35 @@ const app = {
       for(let i=0; i<c.cap; i++){
         const sNo = (c.students||[])[i];
         const name = sNo ? (state.students.find(x=>x.no===sNo)?.adsoyad || sNo) : "BOŞ";
+        
+        // Yeni SVG Çizimi: Masa ve Sandalye
+        const svgContent = `
+          <svg viewBox="0 0 110 90" preserveAspectRatio="xMidYMid meet">
+             <rect x="35" y="2" width="40" height="12" rx="4" fill="none" stroke="#000" stroke-width="2"/>
+             <line x1="42" y1="14" x2="42" y2="24" stroke="#000" stroke-width="2" />
+             <line x1="68" y1="14" x2="68" y2="24" stroke="#000" stroke-width="2" />
+
+             <rect x="5" y="24" width="100" height="40" rx="6" fill="none" stroke="#000" stroke-width="2" />
+
+             <line x1="15" y1="64" x2="15" y2="85" stroke="#000" stroke-width="2" />
+             <line x1="95" y1="64" x2="95" y2="85" stroke="#000" stroke-width="2" />
+          </svg>
+        `;
+        
         gridHtml += `
           <div class="seat">
-            <div class="idx">${i+1}</div>
-            <svg viewBox="0 0 120 70">
-              <rect x="10" y="20" rx="6" ry="6" width="100" height="28" fill="none" stroke="#000" stroke-width="2"/>
-              <line x1="20" y1="48" x2="20" y2="64" stroke="#000" stroke-width="2"/>
-              <line x1="100" y1="48" x2="100" y2="64" stroke="#000" stroke-width="2"/>
-              <rect x="42" y="4" rx="4" ry="4" width="36" height="10" fill="none" stroke="#000" stroke-width="2"/>
-              <line x1="48" y1="14" x2="48" y2="20" stroke="#000" stroke-width="2"/>
-              <line x1="84" y1="14" x2="84" y2="20" stroke="#000" stroke-width="2"/>
-            </svg>
-            <div class="nm">${name}</div>
+            <div class="seat-content">
+              <div class="idx">${i+1}</div>
+              <div class="nm">${name}</div>
+            </div>
+            ${svgContent}
           </div>`;
       }
       gridHtml += `</div>`;
       
       page.innerHTML = `
-        <h2 style="text-align:center; font-family:Arial">${c.name} Oturma Planı</h2>
-        <div style="text-align:center; margin-bottom:20px; font-family:Arial; font-weight:bold">${dFormatted} - ${tch}</div>
+        <h2 style="text-align:center; font-family:Arial; color:#000;">${c.name} Oturma Planı</h2>
+        <div style="text-align:center; margin-bottom:20px; font-family:Arial; font-weight:bold; color:#000;">${dFormatted} - ${tch}</div>
         ${gridHtml}`;
       area.appendChild(page);
     });
