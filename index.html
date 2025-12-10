@@ -600,27 +600,16 @@ function shuffleArray(array) {
 
 // === GÜNCEL: Sınıf ismine göre renk üretici (8A sarı, 8B yeşil, diğerleri için fallback) ===
 function getClassColor(str) {
-    if(!str) return '#64748b';
-    const raw = String(str).trim().toUpperCase();
-    const key = raw.replace(/\s+/g,'').replace(/-/g,'');
+    if (!str) return '#64748b';
+    const key = String(str).trim().toUpperCase().replace(/\s+/g, '').replace(/-/g, '');
 
-    // Özel tanımlar
-    const map = {
-      '8A': '#eab308', // sarı
-      '8B': '#22c55e', // yeşil
-      '8C': '#3b82f6',
-      '8D': '#ec4899',
-      '8E': '#f97316'
-    };
-    if(map[key]) return map[key];
-
-    // Yedek: HSL ile otomatik pastel renk
+    // TAMAMEN OTOMATİK: sabit map yok
     let hash = 0;
     for (let i = 0; i < key.length; i++) {
         hash = key.charCodeAt(i) + ((hash << 5) - hash);
     }
     const hue = Math.abs(hash % 360);
-    return `hsl(${hue}, 70%, 45%)`; 
+    return `hsl(${hue}, 70%, 45%)`;
 }
 
 /* ================= FIREBASE HANDLERS ================= */
@@ -1171,3 +1160,4 @@ function initApp(){ applyTheme('dark'); renderSettingsUI(); }
 </script>
 </body>
 </html>
+
