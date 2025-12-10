@@ -2,975 +2,1065 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Sınıf Oturma Planı Yöneticisi v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deneme Öğrenci Oturma Planı</title>
 <style>
-  /* ====== TEMEL DEĞİŞKENLER (MODERN PALET) ====== */
-  :root {
-    --bg-body: #f8fafc;
-    --bg-card: #ffffff;
-    --bg-sidebar: #1e293b;
-    --text-main: #334155;
-    --text-muted: #64748b;
-    --text-light: #f1f5f9;
-    
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
+  /* ====== Modern Tema Değişkenleri ====== */
+  :root{
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-hover: #334155;
+    --muted: #94a3b8;
+    --text: #f1f5f9;
+    --accent: #3b82f6;        /* Modern Mavi */
+    --accent-hover: #2563eb;
     --danger: #ef4444;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --border: #e2e8f0;
-    
-    --radius: 8px;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-
-  /* Koyu Tema Desteği */
-  .dark-mode {
-    --bg-body: #0f172a;
-    --bg-card: #1e293b;
-    --bg-sidebar: #020617;
-    --text-main: #e2e8f0;
-    --text-muted: #94a3b8;
-    --text-light: #f8fafc;
+    --warn: #eab308;
+    --ok: #22c55e;
     --border: #334155;
+    --field: #020617;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --glass: rgba(30, 41, 59, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --focus-ring: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
+  .theme-light{
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --card-hover: #f1f5f9;
+    --muted: #64748b;
+    --text: #0f172a;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --danger: #dc2626;
+    --warn: #ca8a04;
+    --ok: #16a34a;
+    --border: #e2e8f0;
+    --field: #f1f5f9;
+    --glass: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
 
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background-color: var(--bg-body);
-    color: var(--text-main);
-    font-family: var(--font-ui);
+  /* ====== Genel Yapı ====== */
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background: var(--bg);
+    color:var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     height: 100vh;
-    display: flex;
-    overflow: hidden;
-    transition: background-color 0.3s, color 0.3s;
-  }
-
-  /* ====== LAYOUT ====== */
-  .app-container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* Sidebar */
-  .sidebar {
-    width: 260px;
-    background-color: var(--bg-sidebar);
-    color: var(--text-light);
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    flex-shrink: 0;
-  }
-  .brand {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #fff;
-  }
-  .nav-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex: 1;
-  }
-  .nav-item {
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    color: #94a3b8;
-    transition: all 0.2s;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .nav-item:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
-  .nav-item.active { background-color: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-  .nav-icon { width: 20px; height: 20px; fill: currentColor; }
-
-  .sidebar-footer {
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    font-size: 0.85rem;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  /* Main Content */
-  .main-content {
-    flex: 1;
     overflow-y: auto;
-    padding: 2rem;
-    position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  
+  .hidden{display:none !important}
+  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+  .wrap{
+    max-width:1200px;
+    margin: 40px auto;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 
-  /* Section Styles */
-  .section { display: none; animation: fadeIn 0.3s ease; }
-  .section.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-  h1, h2, h3 { margin-top: 0; color: var(--text-main); }
-  h2 { font-size: 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
-
-  /* Cards */
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-    margin-bottom: 1.5rem;
+  /* ====== Başlık & Navigasyon ====== */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
   }
+  .app-title { font-size: 1.25rem; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:10px; }
+  .status-dot { width:10px; height:10px; background:var(--ok); border-radius:50%; box-shadow: 0 0 8px var(--ok); }
 
-  /* Form Elements */
-  .form-group { margin-bottom: 1rem; }
-  label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; }
-  input, select, textarea {
-    width: 100%;
-    padding: 0.6rem 0.8rem;
+  .tabs{
+    display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 24px;
+    background: var(--field); padding: 6px; border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .tab-btn{
+    flex: 1;
+    display:inline-flex; align-items:center; justify-content: center; gap:8px;
+    border:none; background:transparent; color:var(--muted);
+    padding: 10px 16px; border-radius: calc(var(--radius) - 4px);
+    cursor:pointer; font-weight: 500; transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--glass-border); }
+  .tab-btn.active{
+    background: var(--card); color: var(--accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-weight: 600;
+  }
+  .tab-btn svg { width: 18px; height: 18px; }
+
+  /* ====== Kartlar & Bölümler ====== */
+  .card{
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background-color: var(--bg-body);
-    color: var(--text-main);
-    font-family: inherit;
+    padding: 20px;
+    margin-bottom: 16px;
     transition: border-color 0.2s;
   }
-  input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+  .card h2 { margin-top:0; font-size:1.1rem; color: var(--text); margin-bottom: 16px; display:flex; align-items:center; justify-content:space-between; }
 
-  /* Buttons */
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
-    padding: 0.6rem 1.2rem;
-    border-radius: var(--radius);
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+  /* ====== Form Elemanları ====== */
+  label{display:block; margin-bottom:6px; font-size:0.85rem; color:var(--muted); font-weight:500}
+  input, select, button, textarea {
+    width:100%; padding:10px 14px;
+    border-radius: var(--radius); border:1px solid var(--border);
+    background: var(--field); color:var(--text);
+    font-size: 0.9rem; transition: all 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow: var(--focus-ring); }
+  
+  button{ width:auto; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px; justify-content:center; }
+  button:active { transform: translateY(1px); }
+  
+  button.primary{ background: var(--accent); border-color: var(--accent); color: white; }
+  button.primary:hover{ background: var(--accent-hover); }
+  
+  button.danger{ background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+  button.danger:hover{ background: rgba(239, 68, 68, 0.2); }
+  
+  button.firebase-btn { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--ok); }
+  button.firebase-btn:hover { background: rgba(16, 185, 129, 0.2); }
+
+  .btn-sm{ padding: 6px 10px; font-size: 0.8rem; border-radius: 8px; }
+  .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+  
+  /* ====== Listeler & Grid ====== */
+  .row{display:flex; gap:16px; flex-wrap:wrap}
+  .col{flex:1; min-width:300px}
+  
+  .list-container {
+    height: 400px; overflow-y:auto; 
+    border:1px solid var(--border); border-radius: var(--radius); 
+    background: var(--field); padding:8px;
+  }
+  
+  .student-item {
+    padding: 10px; margin-bottom:6px;
+    background: var(--card); border:1px solid var(--border);
+    border-radius: 8px; display:flex; justify-content:space-between; align-items:center;
     font-size: 0.9rem;
   }
-  .btn-primary { background-color: var(--primary); color: white; }
-  .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-  .btn-danger { background-color: var(--danger); color: white; }
-  .btn-danger:hover { background-color: #dc2626; }
-  .btn-ghost { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
-  .btn-ghost:hover { background-color: var(--border); }
-  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-  .btn-icon { padding: 0.5rem; aspect-ratio: 1; border-radius: 50%; }
-
-  /* Grid Layouts */
-  .grid { display: grid; gap: 1.5rem; }
-  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
   
-  /* Tables */
-  .table-container { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-  table { width: 100%; border-collapse: collapse; text-align: left; }
-  th, td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); }
-  th { background-color: var(--bg-body); font-weight: 600; color: var(--text-muted); white-space: nowrap; }
-  tr:last-child td { border-bottom: none; }
-  
-  /* Drag & Drop Areas */
-  .drag-container {
-    display: flex; gap: 1.5rem; align-items: flex-start; height: calc(100vh - 140px); overflow: hidden;
-  }
-  .student-pool {
-    width: 280px; flex-shrink: 0; display: flex; flex-direction: column;
-    background: var(--bg-card); border-right: 1px solid var(--border);
-    padding-right: 1rem; height: 100%;
-  }
-  .class-drop-zone {
-    flex: 1; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 1rem; padding-bottom: 2rem;
-  }
-  
-  /* Student Chips */
-  .student-chip {
-    padding: 0.6rem 0.8rem;
-    margin-bottom: 0.5rem;
-    background: var(--bg-body);
-    border: 1px solid var(--border);
+  /* ====== Sürükle Bırak (Düzeltilmiş) ====== */
+  .drop-zone {
+    min-height: 120px;
+    background: var(--field);
+    border: 2px dashed var(--border);
     border-radius: var(--radius);
-    cursor: grab;
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 0.85rem;
+    padding: 8px;
+    transition: all 0.2s ease;
+  }
+  .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+    box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+  }
+
+  .draggable-chip {
+    padding: 8px 12px; margin-bottom: 6px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; cursor: grab;
+    display:flex; justify-content:space-between; align-items:center;
     user-select: none;
     transition: transform 0.1s, box-shadow 0.2s;
   }
-  .student-chip:hover { border-color: var(--primary); }
-  .student-chip:active { cursor: grabbing; transform: scale(0.98); }
-  .student-chip.assigned { opacity: 0.5; background: #e2e8f0; text-decoration: line-through; pointer-events: none; }
-  
-  .class-box {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: var(--radius); width: 300px; display: flex; flex-direction: column;
-    transition: border-color 0.2s;
-  }
-  .class-box.drag-over { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); background-color: rgba(59, 130, 246, 0.05); }
-  .class-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-body); }
-  .class-body { padding: 0.5rem; min-height: 150px; max-height: 400px; overflow-y: auto; }
-  
-  /* Toast Notifications */
-  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-  .toast {
-    background: var(--bg-sidebar); color: #fff; padding: 12px 20px; border-radius: var(--radius);
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-    display: flex; align-items: center; gap: 10px;
-    animation: slideIn 0.3s ease forwards;
-    pointer-events: auto; min-width: 250px;
-  }
-  .toast.success { border-left: 4px solid var(--success); }
-  .toast.error { border-left: 4px solid var(--danger); }
-  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  
-  /* Stats Badge */
-  .badge { display: inline-block; padding: 0.25em 0.6em; font-size: 75%; font-weight: 700; border-radius: 999px; background: var(--primary); color: #fff; }
+  .draggable-chip:hover { border-color: var(--accent); }
+  .draggable-chip:active { cursor: grabbing; transform: scale(0.98); }
+  .draggable-chip.assigned { opacity: 0.6; text-decoration: line-through; pointer-events:none; background: var(--bg); }
 
-  /* Print Styles */
+  .chip-actions { display:flex; gap:4px; }
+  
+  /* ====== Tablo ====== */
+  table { width:100%; border-collapse:collapse; font-size:0.9rem; }
+  th { text-align:left; color:var(--muted); font-weight:600; padding:10px; border-bottom:1px solid var(--border); }
+  td { padding:10px; border-bottom:1px solid var(--border); color:var(--text); }
+  tr:last-child td { border-bottom:none; }
+  
+  /* ====== Modal ====== */
+  .modal-overlay {
+    position:fixed; inset:0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    display:flex; align-items:center; justify-content:center; z-index:1000;
+  }
+  .modal-content {
+    background: var(--card); border:1px solid var(--border);
+    padding:24px; border-radius:var(--radius-lg); width:90%; max-width:400px;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+  }
+
+  /* ====== KPI Paneli ====== */
+  .kpi-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:16px; }
+  .kpi-card { background:linear-gradient(145deg, var(--card), var(--field)); padding:12px; border-radius:var(--radius); border:1px solid var(--border); text-align:center; }
+  .kpi-val { font-size:1.5rem; font-weight:700; color:var(--accent); }
+  .kpi-lbl { font-size:0.8rem; color:var(--muted); }
+
+  /* ====== Yazdırma ====== */
   @media print {
-    .sidebar, .no-print, .toast-container { display: none !important; }
-    .app-container { display: block; height: auto; }
-    .main-content { padding: 0; overflow: visible; }
-    .section { display: none; }
-    #printRoot { display: block !important; }
-    
-    .print-page { page-break-after: always; padding: 20px; margin: 0; }
-    .print-header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-    .print-title { font-size: 24px; font-weight: bold; }
-    .print-meta { font-size: 14px; margin-top: 5px; }
-    
-    table { font-size: 12px; width: 100%; border: 1px solid #000; }
-    th, td { border: 1px solid #000; padding: 4px; }
-    
-    /* Seat Grid Print */
-    .seat-grid {
-      display: grid;
-      grid-template-columns: repeat(var(--cols), 1fr);
-      gap: 15px;
-    }
-    .seat-card {
-      border: 1px solid #000; border-radius: 8px; padding: 10px;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      height: 80px; justify-content: center;
-    }
-    .seat-idx { font-size: 10px; font-weight: bold; margin-bottom: 4px; }
-    .seat-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
+    body, .wrap { background:white; color:black; border:none; box-shadow:none; margin:0; padding:0; width:100%; overflow:visible; }
+    .no-print, .tabs, .mac-titlebar, .toolbar { display:none !important; }
+    .print-page { page-break-after: always; margin: 20px; }
+    .seat-grid { display:grid; grid-template-columns: repeat(var(--cols), 1fr); gap:10px; }
+    .seat { border:1px solid #000; padding:5px; text-align:center; border-radius:6px; }
+    .seat svg { width:60px; height:auto; }
   }
 </style>
 </head>
 <body>
 
-<div class="app-container">
-  
-  <aside class="sidebar no-print">
-    <div class="brand">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-      Plan Yönetici v2
+<div class="wrap">
+  <div class="app-header no-print">
+    <div class="app-title">
+      <div class="status-dot"></div>
+      <span>Oturma Planı Yöneticisi</span>
     </div>
-    
-    <nav class="nav-menu">
-      <div class="nav-item active" onclick="switchTab('ayarlar')">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" fill="currentColor"/><path d="M20 12a8 8 0 0 0-2-6l-.4-2.6A9 9 0 0 0 2.4 6l-.4 2.6a8 8 0 0 0 0 6.8l.4 2.6a9 9 0 0 0 15.2 2.6l.4-2.6c.6-2 .6-4.8 0-6.8Z" fill="currentColor"/></svg>
-        Ayarlar & Veri
-      </div>
-      <div class="nav-item" onclick="switchTab('siniflar')">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 4h18v16H3V4zm2 2v12h14V6H5z" fill="currentColor"/></svg>
-        Sınıf Düzeni
-      </div>
-      <div class="nav-item" onclick="switchTab('takvim')">
-        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="currentColor"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Takvim
-      </div>
-      <div class="nav-item" onclick="switchTab('atama')">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        Oturma Planı
-      </div>
-      <div class="nav-item" onclick="switchTab('yazdir')">
-        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-        Yazdır
-      </div>
-    </nav>
-
-    <div class="sidebar-footer">
-      <span id="themeToggle" style="cursor:pointer" title="Temayı Değiştir">🌙 Koyu Mod</span>
-      <span id="version">v2.1</span>
+    <div class="actions inline" style="display:flex; gap:10px">
+      <button id="btnTheme" class="btn-sm">Tema Değiştir</button>
     </div>
-  </aside>
+  </div>
 
-  <main class="main-content">
-    
-    <section id="ayarlar" class="section active">
-      <h2>Veri Kaynağı & Ayarlar</h2>
-      
-      <div class="grid grid-2">
-        <div class="card">
-          <h3>Google E-Tablo Bağlantısı</h3>
-          <div class="form-group">
-            <label>Spreadsheet ID</label>
-            <input id="sheetId" placeholder="Google Sheet ID yapıştırın..." />
-          </div>
-          <div class="grid grid-2" style="gap:10px">
-             <div><label>Öğrenci Sayfası</label><input id="tabStd" value="Deneme" /></div>
-             <div><label>Öğretmen Sayfası</label><input id="tabTch" value="Ogretmenler" /></div>
-          </div>
-          <div style="margin-top:1rem; display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="app.loadData()">Verileri Çek</button>
-            <button class="btn btn-ghost" onclick="app.loadDemoData()">Demo Veri Yükle</button>
-          </div>
-          <p style="font-size:0.8rem; color:var(--text-muted); margin-top:10px">Not: Tablo "Bağlantıya sahip olan herkes görüntüleyebilir" modunda olmalıdır.</p>
+  <div class="tabs no-print">
+    <button class="tab-btn active" data-tab="ayarl">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+      Ayarlar
+    </button>
+    <button class="tab-btn" data-tab="sinif">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Sınıflar
+    </button>
+    <button class="tab-btn" data-tab="takvim">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Takvim
+    </button>
+    <button class="tab-btn" data-tab="atama">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      Atama
+    </button>
+    <button class="tab-btn" data-tab="yazdir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Yazdır
+    </button>
+  </div>
+
+  <section id="ayarl">
+    <div class="card">
+      <h2>
+        <span>Veri Kaynağı (Google Sheets)</span>
+        <div class="inline" style="gap:8px">
+          <button id="fbSaveSettings" class="firebase-btn btn-sm">Ayarları Kaydet (Bulut)</button>
+          <button id="fbLoadSettings" class="firebase-btn btn-sm">Ayarları Yükle (Bulut)</button>
         </div>
+      </h2>
+      <div class="row">
+        <div class="col">
+          <label>Spreadsheet ID</label>
+          <input id="sheetId" placeholder="Google Sheet ID" />
+        </div>
+        <div class="col">
+          <label>Öğrenci Sayfa Adı</label>
+          <input id="sheetStudentTab" value="Deneme" />
+        </div>
+        <div class="col">
+          <label>Öğretmen Sayfa Adı</label>
+          <input id="sheetTeacherTab" value="Ogretmenler" />
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:16px">
+        <button id="btnFetchSheets" class="primary">E-Tablodan Verileri Çek</button>
+        <span style="font-size:0.8rem; color:var(--muted)">Tablo "Bağlantıya sahip herkes görüntüleyebilir" olmalıdır.</span>
+      </div>
+    </div>
 
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-val" id="kpiStd">0</div><div class="kpi-lbl">Öğrenci</div></div>
+      <div class="kpi-card"><div class="kpi-val" id="kpiTch">0</div><div class="kpi-lbl">Öğretmen</div></div>
+      <div class="kpi-card"><div class="kpi-val" id="kpiCls">0</div><div class="kpi-lbl">Sınıf</div></div>
+    </div>
+
+    <div class="row">
+      <div class="col">
         <div class="card">
-          <h3>Sistem İstatistikleri</h3>
-          <div class="grid grid-2">
-             <div style="text-align:center; padding:10px; background:var(--bg-body); border-radius:var(--radius);">
-               <div style="font-size:2rem; font-weight:bold; color:var(--primary)" id="statStd">0</div>
-               <div style="font-size:0.8rem">Öğrenci</div>
-             </div>
-             <div style="text-align:center; padding:10px; background:var(--bg-body); border-radius:var(--radius);">
-               <div style="font-size:2rem; font-weight:bold; color:var(--warning)" id="statTch">0</div>
-               <div style="font-size:0.8rem">Öğretmen</div>
-             </div>
-          </div>
-          <div style="margin-top:1rem">
-            <label>Yedekleme İşlemleri</label>
-            <div style="display:flex; gap:8px; margin-top:5px">
-              <button class="btn btn-sm btn-ghost" onclick="app.exportData()">Tüm Veriyi İndir (.json)</button>
-              <button class="btn btn-sm btn-ghost" onclick="document.getElementById('fileImp').click()">Veri Yükle</button>
-              <input type="file" id="fileImp" hidden accept=".json" onchange="app.importData(this)" />
+          <h2>
+            Öğrenci Listesi
+            <div class="inline" style="gap:5px">
+               <button id="fbSaveStudents" class="firebase-btn btn-sm">Kaydet (Bulut)</button>
+               <button id="fbLoadStudents" class="firebase-btn btn-sm">Yükle (Bulut)</button>
             </div>
-          </div>
+          </h2>
+          <div id="listStudents" class="list-container"></div>
         </div>
       </div>
-
-      <div class="card">
-        <h3>Yüklenen Öğrenci Önizleme (İlk 5)</h3>
-        <div id="previewList" style="font-size:0.9rem; color:var(--text-muted)">Henüz veri yüklenmedi.</div>
+      <div class="col">
+        <div class="card">
+          <h2>
+            Öğretmen Listesi
+            <div class="inline" style="gap:5px">
+               <button id="fbSaveTeachers" class="firebase-btn btn-sm">Kaydet (Bulut)</button>
+               <button id="fbLoadTeachers" class="firebase-btn btn-sm">Yükle (Bulut)</button>
+            </div>
+          </h2>
+          <div id="listTeachers" class="list-container"></div>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="siniflar" class="section">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
-        <h2>Sınıf Konfigürasyonu</h2>
-        <button class="btn btn-primary" onclick="app.addClass()">+ Yeni Sınıf Ekle</button>
+  <section id="sinif" class="hidden">
+    <div class="card">
+      <h2>
+        <span>Sınıf Yönetimi</span>
+        <div class="inline" style="gap:8px">
+          <button id="fbSaveClasses" class="firebase-btn btn-sm">Sınıfları Kaydet (Bulut)</button>
+          <button id="fbLoadClasses" class="firebase-btn btn-sm">Sınıfları Yükle (Bulut)</button>
+        </div>
+      </h2>
+      <div class="toolbar">
+        <button id="btnAddClass" class="primary">Yeni Sınıf Ekle</button>
+        <button id="btnClearClasses" class="danger">Hepsini Sil</button>
       </div>
-
-      <div class="table-container bg-card">
-        <table id="tblClasses">
+      <div style="overflow-x:auto">
+        <table>
           <thead>
             <tr>
               <th>Sınıf Adı</th>
-              <th>Kapasite</th>
-              <th>Düzen (Satır x Sütun)</th>
-              <th>Seviye</th>
+              <th width="80">Kont.</th>
+              <th width="80">Düzey</th>
               <th>Gözetmen</th>
-              <th style="text-align:right">İşlemler</th>
+              <th width="80">Satır</th>
+              <th width="80">Sütun</th>
+              <th width="120">İşlem</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody id="tbodyClasses"></tbody>
         </table>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="takvim" class="section">
-      <h2>Sınav Takvimi</h2>
-      <div class="card grid grid-3" style="align-items:end">
-        <div>
-          <label>Seviye</label>
-          <select id="calLevel"><option value="8">8. Sınıf</option><option value="7">7. Sınıf</option><option value="6">6. Sınıf</option><option value="5">5. Sınıf</option></select>
+  <section id="takvim" class="hidden">
+    <div class="card">
+      <h2>
+        <span>Deneme Takvimi</span>
+        <div class="inline" style="gap:8px">
+          <button id="fbSaveCalendar" class="firebase-btn btn-sm">Takvimi Kaydet (Bulut)</button>
+          <button id="fbLoadCalendar" class="firebase-btn btn-sm">Takvimi Yükle (Bulut)</button>
         </div>
-        <div>
+      </h2>
+      <div class="row" style="align-items:end">
+        <div class="col" style="flex:0 0 200px">
           <label>Tarih</label>
-          <input type="date" id="calDate" />
+          <input type="date" id="calDate">
         </div>
-        <button class="btn btn-primary" onclick="app.saveCalendar()">Tarihi Ayarla</button>
+        <div class="col" style="flex:0 0 150px">
+          <label>Düzey</label>
+          <select id="calLevel">
+            <option value="8">8. Sınıf</option>
+            <option value="7">7. Sınıf</option>
+            <option value="6">6. Sınıf</option>
+            <option value="5">5. Sınıf</option>
+          </select>
+        </div>
+        <div class="col">
+          <button id="btnAddExam" class="primary">Tarih Ekle/Güncelle</button>
+        </div>
       </div>
-      <div class="grid grid-2" id="calendarDisplay"></div>
-    </section>
+      <div id="calendarList" style="margin-top:20px; display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </section>
 
-    <section id="atama" class="section">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
-         <div style="display:flex; gap:10px; align-items:center">
-           <h2>Oturma Planı</h2>
-           <select id="assignLevel" onchange="app.renderAssignment()" style="width:auto; padding:5px 10px; font-weight:bold">
-             <option value="8">8. Sınıflar</option>
-             <option value="7">7. Sınıflar</option>
-             <option value="6">6. Sınıflar</option>
-             <option value="5">5. Sınıflar</option>
-           </select>
-         </div>
-         <div style="display:flex; gap:8px">
-           <button class="btn btn-ghost" onclick="app.autoDistribute()">⚡ Otomatik Dağıt</button>
-           <button class="btn btn-ghost" onclick="app.clearAssignment()">Temizle</button>
-         </div>
-      </div>
-
-      <div class="drag-container">
-        <div class="student-pool">
-          <div style="margin-bottom:10px">
-             <input type="text" id="searchStd" placeholder="Öğrenci ara..." onkeyup="app.renderPool()" />
+  <section id="atama" class="hidden">
+    <div class="card">
+      <h2>
+        <span>Atama & Yerleşim</span>
+        <div class="inline" style="gap:8px">
+          <button id="fbSaveAssign" class="firebase-btn btn-sm">Atamaları Kaydet (Bulut)</button>
+          <button id="fbLoadAssign" class="firebase-btn btn-sm">Atamaları Yükle (Bulut)</button>
+        </div>
+      </h2>
+      <div class="toolbar" style="background:var(--field); padding:10px; border-radius:8px; border:1px solid var(--border)">
+        <div class="inline" style="gap:12px; flex-wrap:wrap">
+          <div class="inline">
+            <label style="margin:0; margin-right:8px">Düzey:</label>
+            <select id="assignLevelFilter" style="width:auto">
+              <option value="8">8</option><option value="7">7</option><option value="6">6</option><option value="5">5</option>
+            </select>
           </div>
-          <div style="flex:1; overflow-y:auto" id="poolList"></div>
-        </div>
-
-        <div class="class-drop-zone" id="dropZone"></div>
-      </div>
-    </section>
-
-    <section id="yazdir" class="section">
-      <h2>Yazdırma Seçenekleri</h2>
-      <div class="grid grid-2 no-print">
-        <div class="card" onclick="printMode='list'; window.print()" style="cursor:pointer; transition:transform 0.2s">
-          <h3 style="color:var(--primary)">📄 İmza Listesi Yazdır</h3>
-          <p style="color:var(--text-muted)">Klasik tablo görünümünde yoklama/imza listesi.</p>
-        </div>
-        <div class="card" onclick="printMode='seat'; window.print()" style="cursor:pointer; transition:transform 0.2s">
-          <h3 style="color:var(--success)">🪑 Oturma Planı Yazdır</h3>
-          <p style="color:var(--text-muted)">Sıra kutucukları şeklinde görsel plan.</p>
+          <div class="inline">
+             <label style="margin:0; margin-right:8px">Sırala:</label>
+             <select id="assignSort" style="width:auto">
+               <option value="ad">İsim</option><option value="no">Numara</option><option value="sinif">Sınıf</option>
+             </select>
+          </div>
+          <button id="btnAutoDistribute" class="primary btn-sm">Otomatik Dağıt</button>
+          <button id="btnShuffle" class="btn-sm">Karıştır</button>
+          <button id="btnClearAssign" class="danger btn-sm">Temizle</button>
         </div>
       </div>
-    </section>
+      
+      <div class="row" id="assignContainer" style="align-items:start">
+        </div>
+    </div>
+  </section>
 
-  </main>
+  <section id="yazdir" class="hidden">
+    <div class="row no-print">
+      <div class="col">
+        <div class="card">
+          <h2>Liste Yazdır</h2>
+          <p class="small text-muted">Sınıf kapılarına asılacak imza listesi.</p>
+          <button onclick="app.printList()" class="primary">Listeleri Yazdır</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <h2>Oturma Planı Yazdır</h2>
+          <p class="small text-muted">Sınıf içindeki sıra düzeni (Görsel).</p>
+          <button onclick="app.printSeating()" class="primary">Oturma Planı Yazdır</button>
+        </div>
+      </div>
+    </div>
+    <div id="printArea" class="hidden"></div>
+  </section>
+
 </div>
 
-<div class="toast-container" id="toastArea"></div>
+<div id="modalRoot" class="hidden">
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3 id="modalTitle" style="margin-top:0">Onay</h3>
+      <p id="modalDesc">İşlem yapılsın mı?</p>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px">
+        <button id="modalCancel">İptal</button>
+        <button id="modalOk" class="primary">Tamam</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<div id="printRoot" style="display:none"></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIzu6aNQstwQCdMWODyIwiaVVBm63OeGw",
+    authDomain: "odevfeno.firebaseapp.com",
+    databaseURL: "https://odevfeno-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "odevfeno",
+    storageBucket: "odevfeno.firebasestorage.app",
+    messagingSenderId: "662757516934",
+    appId: "1:662757516934:web:0042188832f63deb6fd307",
+    measurementId: "G-4Q99NQRB38"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getDatabase(fbApp);
+  const rootRef = ref(db);
+
+  // Firebase Yardımcı Fonksiyonları
+  window.fbSave = async (path, data) => {
+    try {
+      await set(ref(db, 'denemeotur/' + path), data);
+      alert('Başarıyla kaydedildi (Firebase).');
+    } catch(e) { console.error(e); alert('Hata: ' + e.message); }
+  };
+  
+  window.fbLoad = async (path) => {
+    try {
+      const snap = await get(child(rootRef, 'denemeotur/' + path));
+      if(snap.exists()) return snap.val();
+      return null;
+    } catch(e) { console.error(e); alert('Yükleme hatası: ' + e.message); return null; }
+  };
+</script>
 
 <script>
-/* ===================== UYGULAMA MANTIĞI ===================== */
-const app = {
-  data: {
-    cfg: { sheetId: "", tabStd: "Deneme", tabTch: "Ogretmenler", theme: "light" },
-    students: [],
-    teachers: [],
-    classes: [],
-    calendar: []
-  },
+/* ================= GLOBAL STATE ================= */
+const state = {
+  cfg: { sheetId: "", tabStudents: "Deneme", tabTeachers: "Ogretmenler", theme: "dark" },
+  students: [],
+  teachers: [],
+  classes: [], 
+  calendar: []
+};
 
-  init() {
-    this.loadLocal();
-    this.applyTheme();
-    // Tab url hash kontrolü veya default
-    this.updateStats();
-  },
+/* ================= YARDIMCILAR ================= */
+const $ = id => document.getElementById(id);
+const uid = () => Math.random().toString(36).substr(2, 9);
+const normalize = s => (s||"").toString().toLowerCase().trim().replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c").replace(/\s/g,"");
 
-  // --- Veri Yönetimi ---
-  async loadData() {
-    const sid = document.getElementById("sheetId").value.trim();
-    const ts = document.getElementById("tabStd").value.trim();
-    const tt = document.getElementById("tabTch").value.trim();
-    
-    if(!sid) return toast("Sheet ID gerekli!", "error");
-    
-    try {
-      toast("Veriler çekiliyor...", "info");
-      const sData = await this.fetchSheet(sid, ts);
-      const tData = await this.fetchSheet(sid, tt);
-      
-      this.data.students = this.parseSheet(sData, ["no","adsoyad","sinif"]);
-      this.data.teachers = this.parseSheet(tData, ["id","ogretmenadi"]); // Basit parse
-      
-      // Config güncelle
-      this.data.cfg = { ...this.data.cfg, sheetId: sid, tabStd: ts, tabTch: tt };
-      
-      this.saveLocal();
-      this.updateStats();
-      toast(`Başarılı: ${this.data.students.length} öğrenci yüklendi.`, "success");
-    } catch(e) {
-      console.error(e);
-      toast("Veri çekilemedi. İzinleri kontrol edin.", "error");
-    }
-  },
-
-  loadDemoData() {
-    this.data.students = Array.from({length: 50}, (_,i) => ({
-      no: (100+i).toString(), 
-      adsoyad: `Öğrenci Adı ${i+1}`, 
-      sinif: i<25 ? "8-A" : "8-B"
-    }));
-    this.data.teachers = [{id:"T1", ad:"Ahmet Hoca"}, {id:"T2", ad:"Ayşe Hoca"}];
-    this.data.classes = [
-      {id: "c1", name: "Salon A", cap: 20, level: 8, rows: 5, cols: 4, students: [], teacherIds: ["T1"]},
-      {id: "c2", name: "Salon B", cap: 20, level: 8, rows: 5, cols: 4, students: [], teacherIds: ["T2"]}
-    ];
-    this.saveLocal();
-    this.updateUI();
-    toast("Demo veriler yüklendi.", "success");
-  },
-
-  async fetchSheet(id, sheetName) {
-    const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-    const res = await fetch(url);
-    const txt = await res.text();
-    // JSONP temizliği
-    return JSON.parse(txt.substring(txt.indexOf("(") + 1, txt.lastIndexOf(")")));
-  },
-
-  parseSheet(json, requiredKeys) {
-    if(!json.table || !json.table.rows) return [];
-    // Başlıkları bul (normalize et)
-    const headers = json.table.cols.map(c => this.normalize(c.label || ""));
-    // İndeksleri bul
-    const idxs = requiredKeys.map(k => headers.findIndex(h => h.includes(k)));
-    
-    // Satırları dön
-    return json.table.rows.map(r => {
-      if(!r.c) return null;
-      const obj = {};
-      requiredKeys.forEach((key, i) => {
-        const val = r.c[idxs[i]] ? r.c[idxs[i]].v : "";
-        obj[key === "ogretmenadi" ? "ad" : key] = String(val).trim(); // Mapping
-      });
-      return obj;
-    }).filter(x => x && x[requiredKeys[0]]); // İlk key boş değilse al
-  },
-
-  normalize(str) {
-    return str.toLowerCase().replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c").replace(/\s/g,"");
-  },
-
-  updateStats() {
-    document.getElementById("statStd").textContent = this.data.students.length;
-    document.getElementById("statTch").textContent = this.data.teachers.length;
-    
-    const preview = this.data.students.slice(0,5).map(s => `<div>${s.no} - ${s.adsoyad} (${s.sinif})</div>`).join("");
-    document.getElementById("previewList").innerHTML = preview || "Veri yok.";
-    
-    // Inputları doldur
-    document.getElementById("sheetId").value = this.data.cfg.sheetId || "";
-    
-    this.renderClasses();
-    this.renderCalendarDisplay();
-  },
-
-  // --- Sınıf Yönetimi ---
-  renderClasses() {
-    const tbody = document.querySelector("#tblClasses tbody");
-    tbody.innerHTML = "";
-    
-    this.data.classes.forEach(c => {
-      const tr = document.createElement("tr");
-      
-      // Öğretmen Seçimi
-      const tchOpts = this.data.teachers.map(t => `<option value="${t.id}" ${c.teacherIds?.includes(t.id)?"selected":""}>${t.ad}</option>`).join("");
-      
-      tr.innerHTML = `
-        <td><input value="${c.name}" onchange="app.updateClass('${c.id}', 'name', this.value)" /></td>
-        <td><input type="number" style="width:70px" value="${c.cap}" onchange="app.updateClass('${c.id}', 'cap', this.value)" /></td>
-        <td>
-           <div style="display:flex; align-items:center; gap:5px">
-             <input type="number" style="width:50px" placeholder="Satır" value="${c.rows||5}" disabled title="Oto Hesaplanır">
-             <span>x</span>
-             <input type="number" style="width:50px" placeholder="Sütun" value="${c.cols||4}" onchange="app.updateClass('${c.id}', 'cols', this.value)">
-           </div>
-        </td>
-        <td>
-          <select onchange="app.updateClass('${c.id}', 'level', this.value)">
-            <option value="8" ${c.level==8?"selected":""}>8</option>
-            <option value="7" ${c.level==7?"selected":""}>7</option>
-            <option value="6" ${c.level==6?"selected":""}>6</option>
-            <option value="5" ${c.level==5?"selected":""}>5</option>
-          </select>
-        </td>
-        <td>
-          <select multiple style="height:40px" onchange="app.updateClassTch('${c.id}', this)">${tchOpts}</select>
-        </td>
-        <td style="text-align:right">
-          <button class="btn btn-icon btn-danger" onclick="app.delClass('${c.id}')">🗑</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  },
-
-  addClass() {
-    this.data.classes.push({
-      id: "c" + Date.now(),
-      name: `Yeni Sınıf ${this.data.classes.length+1}`,
-      cap: 20, level: 8, rows: 5, cols: 4, students: [], teacherIds: []
-    });
-    this.saveLocal();
-    this.renderClasses();
-  },
-
-  updateClass(id, field, val) {
-    const c = this.data.classes.find(x => x.id === id);
-    if(c) {
-      if(field === "cap" || field === "cols") val = parseInt(val) || 1;
-      if(field === "level") val = parseInt(val);
-      c[field] = val;
-      
-      // Satır sayısını otomatik güncelle (Kapasite / Sütun)
-      if(field === "cap" || field === "cols") {
-        c.rows = Math.ceil(c.cap / c.cols);
-      }
-      this.saveLocal();
-      this.renderClasses(); // Tabloyu yenile ki satır sayısı güncellensin
-    }
-  },
-
-  updateClassTch(id, selectEl) {
-    const c = this.data.classes.find(x => x.id === id);
-    if(c) {
-      c.teacherIds = Array.from(selectEl.selectedOptions).map(o => o.value);
-      this.saveLocal();
-    }
-  },
-
-  delClass(id) {
-    if(confirm("Bu sınıfı silmek istiyor musunuz?")) {
-      this.data.classes = this.data.classes.filter(c => c.id !== id);
-      this.saveLocal();
-      this.renderClasses();
-    }
-  },
-
-  // --- Takvim ---
-  saveCalendar() {
-    const lvl = parseInt(document.getElementById("calLevel").value);
-    const date = document.getElementById("calDate").value;
-    if(!date) return toast("Tarih seçin", "error");
-    
-    const exist = this.data.calendar.find(x => x.level === lvl);
-    if(exist) exist.date = date;
-    else this.data.calendar.push({level: lvl, date});
-    
-    this.saveLocal();
-    this.renderCalendarDisplay();
-    toast(`${lvl}. sınıflar için tarih ayarlandı.`, "success");
-  },
-
-  renderCalendarDisplay() {
-    const div = document.getElementById("calendarDisplay");
-    div.innerHTML = this.data.calendar.sort((a,b)=>a.level-b.level).map(c => `
-      <div class="card" style="margin:0; padding:10px; border-left:4px solid var(--primary)">
-        <strong>${c.level}. Sınıflar</strong>
-        <div style="color:var(--text-muted)">${new Date(c.date).toLocaleDateString("tr-TR")}</div>
-      </div>
-    `).join("");
-  },
-
-  // --- Oturma Planı (Drag & Drop) ---
-  renderAssignment() {
-    const level = parseInt(document.getElementById("assignLevel").value);
-    const dropZone = document.getElementById("dropZone");
-    dropZone.innerHTML = "";
-
-    // İlgili sınıfları getir
-    const classes = this.data.classes.filter(c => c.level === level);
-    
-    if(classes.length === 0) {
-      dropZone.innerHTML = `<div style="width:100%; text-align:center; color:var(--text-muted); padding:2rem">Bu seviyede sınıf tanımlanmamış. "Sınıf Düzeni" sekmesinden ekleyin.</div>`;
-    }
-
-    classes.forEach(c => {
-      const box = document.createElement("div");
-      box.className = "class-box";
-      box.dataset.id = c.id;
-      
-      const filled = (c.students || []).length;
-      const isFull = filled >= c.cap;
-      
-      box.innerHTML = `
-        <div class="class-header">
-          <span style="font-weight:600">${c.name}</span>
-          <span class="badge" style="background:${isFull?'var(--danger)':'var(--success)'}">${filled}/${c.cap}</span>
-        </div>
-        <div class="class-body" ondragover="app.onDragOver(event)" ondragleave="app.onDragLeave(event)" ondrop="app.onDrop(event, '${c.id}')">
-          ${(c.students||[]).map(no => this.createChipHTML(no, true)).join("")}
-        </div>
-      `;
-      dropZone.appendChild(box);
-    });
-
-    this.renderPool();
-  },
-
-  renderPool() {
-    const level = parseInt(document.getElementById("assignLevel").value);
-    const search = document.getElementById("searchStd").value.toLowerCase();
-    const list = document.getElementById("poolList");
-    
-    // Bu seviyedeki tüm öğrenciler
-    let students = this.data.students.filter(s => {
-      // Sınıf adından seviye bulma (Örn: "8-A" -> 8)
-      const grade = parseInt((s.sinif||"").match(/\d+/)?.[0] || 0);
-      return grade === level;
-    });
-
-    // Aramayı uygula
-    if(search) students = students.filter(s => s.adsoyad.toLowerCase().includes(search) || s.no.includes(search));
-
-    // Atanmışları bul
-    const assignedNos = new Set();
-    this.data.classes.forEach(c => {
-       if(c.students) c.students.forEach(n => assignedNos.add(n));
-    });
-
-    list.innerHTML = students.map(s => {
-      const isAssigned = assignedNos.has(s.no);
-      if(isAssigned && !search) return ""; // Aramıyorsak atananları havuzda gösterme
-      return `<div class="student-chip ${isAssigned?'assigned':''}" draggable="${!isAssigned}" ondragstart="app.onDragStart(event, '${s.no}')">
-        <span><b>${s.no}</b> ${s.adsoyad}</span>
-        <span style="font-size:0.75em; color:gray">${s.sinif}</span>
-      </div>`;
-    }).join("");
-  },
-
-  createChipHTML(no, removable=false) {
-    const s = this.data.students.find(x => x.no === no);
-    const name = s ? s.adsoyad : no;
-    return `
-    <div class="student-chip" style="cursor:default">
-      <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85%">${name}</span>
-      ${removable ? `<span style="cursor:pointer; color:red; font-weight:bold" onclick="app.removeFromClass('${no}')">&times;</span>` : ''}
-    </div>`;
-  },
-
-  // Drag Events
-  onDragStart(e, no) {
-    e.dataTransfer.setData("text/plain", no);
-    e.dataTransfer.effectAllowed = "copy";
-  },
-  onDragOver(e) {
-    e.preventDefault();
-    e.currentTarget.parentElement.classList.add("drag-over");
-  },
-  onDragLeave(e) {
-    e.currentTarget.parentElement.classList.remove("drag-over");
-  },
-  onDrop(e, classId) {
-    e.preventDefault();
-    document.querySelectorAll(".class-box").forEach(b => b.classList.remove("drag-over"));
-    const no = e.dataTransfer.getData("text/plain");
-    this.assignStudent(no, classId);
-  },
-
-  assignStudent(no, classId) {
-    const cls = this.data.classes.find(c => c.id === classId);
-    if(!cls) return;
-    
-    // Kapasite kontrolü
-    if((cls.students||[]).length >= cls.cap) return toast("Sınıf kapasitesi dolu!", "error");
-    
-    // Zaten başka sınıfta mı? (Aslında UI'da engelledik ama çifte kontrol)
-    let oldClass = null;
-    this.data.classes.forEach(c => {
-      if(c.students && c.students.includes(no)) oldClass = c;
-    });
-    
-    if(oldClass) {
-      oldClass.students = oldClass.students.filter(x => x !== no);
-    }
-    
-    if(!cls.students) cls.students = [];
-    cls.students.push(no);
-    
-    this.saveLocal();
-    this.renderAssignment();
-  },
-
-  removeFromClass(no) {
-    this.data.classes.forEach(c => {
-      if(c.students) c.students = c.students.filter(x => x !== no);
-    });
-    this.saveLocal();
-    this.renderAssignment();
-  },
-
-  autoDistribute() {
-    if(!confirm("Mevcut atamalar temizlenip rastgele dağıtılacak. Onaylıyor musunuz?")) return;
-    
-    const level = parseInt(document.getElementById("assignLevel").value);
-    const targets = this.data.classes.filter(c => c.level === level);
-    
-    // Havuzu al
-    let pool = this.data.students.filter(s => parseInt((s.sinif||"").match(/\d+/)?.[0]) === level);
-    // Karıştır
-    pool = pool.sort(() => Math.random() - 0.5);
-    
-    // Temizle
-    targets.forEach(c => c.students = []);
-    
-    // Dağıt
-    let sIdx = 0;
-    targets.forEach(c => {
-      for(let i=0; i<c.cap; i++) {
-        if(sIdx < pool.length) {
-          c.students.push(pool[sIdx].no);
-          sIdx++;
-        }
-      }
-    });
-    
-    this.saveLocal();
-    this.renderAssignment();
-    toast("Otomatik dağıtım tamamlandı.", "success");
-  },
+/* ================= FIREBASE BUTTON HANDLERS ================= */
+// Modül dışından erişim için event listener atamalarını DOMContentLoaded içinde yapıyoruz.
+document.addEventListener('DOMContentLoaded', () => {
+  // Ayarlar
+  $('fbSaveSettings').onclick = () => window.fbSave('ayarlar', state.cfg);
+  $('fbLoadSettings').onclick = async () => {
+    const val = await window.fbLoad('ayarlar');
+    if(val){ state.cfg = {...state.cfg, ...val}; renderSettingsUI(); alert('Ayarlar yüklendi.'); } else alert('Veri yok.');
+  };
   
-  clearAssignment() {
-    if(!confirm("Tüm atamalar silinecek?")) return;
-    const level = parseInt(document.getElementById("assignLevel").value);
-    this.data.classes.filter(c => c.level === level).forEach(c => c.students = []);
-    this.saveLocal();
-    this.renderAssignment();
-  },
+  // Öğrenciler
+  $('fbSaveStudents').onclick = () => window.fbSave('ogrenciler', state.students);
+  $('fbLoadStudents').onclick = async () => {
+    const val = await window.fbLoad('ogrenciler');
+    if(val){ state.students = val || []; renderDataLists(); alert('Öğrenciler yüklendi.'); }
+  };
 
-  // --- Yazdırma ---
-  print(mode) {
-    // Print logic global print listener'da handlediliyor, sadece DOM hazırlığı
-    const root = document.getElementById("printRoot");
-    root.innerHTML = "";
+  // Öğretmenler
+  $('fbSaveTeachers').onclick = () => window.fbSave('ogretmenler', state.teachers);
+  $('fbLoadTeachers').onclick = async () => {
+    const val = await window.fbLoad('ogretmenler');
+    if(val){ state.teachers = val || []; renderDataLists(); renderClassTable(); alert('Öğretmenler yüklendi.'); }
+  };
+
+  // Sınıflar
+  $('fbSaveClasses').onclick = () => window.fbSave('siniflar', state.classes);
+  $('fbLoadClasses').onclick = async () => {
+    const val = await window.fbLoad('siniflar');
+    if(val){ state.classes = val || []; renderClassTable(); alert('Sınıflar yüklendi.'); }
+  };
+
+  // Takvim
+  $('fbSaveCalendar').onclick = () => window.fbSave('takvim', state.calendar);
+  $('fbLoadCalendar').onclick = async () => {
+    const val = await window.fbLoad('takvim');
+    if(val){ state.calendar = val || []; renderCalendar(); alert('Takvim yüklendi.'); }
+  };
+
+  // Atamalar (Sınıfların içindeki students dizisi aslında atamadır, o yüzden sınıfları kaydeder)
+  $('fbSaveAssign').onclick = () => window.fbSave('siniflar', state.classes);
+  $('fbLoadAssign').onclick = async () => {
+    const val = await window.fbLoad('siniflar');
+    if(val){ state.classes = val || []; renderAssignUI(); alert('Atamalar yüklendi.'); }
+  };
+
+  initApp();
+});
+
+/* ================= NAVIGASYON ================= */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+    const t = btn.dataset.tab;
+    $(t).classList.remove('hidden');
     
-    const relevantClasses = this.data.classes.filter(c => (c.students||[]).length > 0);
+    if(t === 'sinif') renderClassTable();
+    if(t === 'atama') renderAssignUI();
+  });
+});
+
+/* ================= GOOGLE SHEETS ================= */
+async function fetchSheetData() {
+  const sid = $('sheetId').value;
+  const sTab = $('sheetStudentTab').value;
+  const tTab = $('sheetTeacherTab').value;
+  
+  if(!sid) return alert('Spreadsheet ID giriniz.');
+
+  try {
+    // Öğrenciler
+    const urlS = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sTab)}`;
+    const resS = await fetch(urlS);
+    const txtS = await resS.text();
+    const jsonS = JSON.parse(txtS.substr(47).slice(0, -2));
     
-    relevantClasses.forEach(c => {
-      const teacher = this.data.teachers.find(t => c.teacherIds?.[0] === t.id)?.ad || "-";
-      const cal = this.data.calendar.find(cal => cal.level === c.level)?.date || "";
-      const dateStr = cal ? new Date(cal).toLocaleDateString("tr-TR") : "-";
+    // Basit parse mantığı: İlk satır başlık mı kontrol et, değilse direkt al
+    const rowsS = jsonS.table.rows.map(r => r.c.map(c => c ? c.v : ""));
+    // Kolon indekslerini bulmaya çalış (Basitçe: 0->No, 1->Ad, 2->Sınıf varsayımı, veya başlık ara)
+    // Güvenli olsun diye başlık arıyoruz
+    const headersS = jsonS.table.cols.map(c => normalize(c.label));
+    let idxNo=0, idxAd=1, idxSin=2;
+    if(headersS.includes('no')) idxNo = headersS.indexOf('no');
+    if(headersS.includes('adsoyad')) idxAd = headersS.indexOf('adsoyad');
+    if(headersS.includes('sinif')) idxSin = headersS.indexOf('sinif');
 
-      const page = document.createElement("div");
-      page.className = "print-page";
-      
-      let content = "";
-      
-      // Header
-      const header = `
-        <div class="print-header">
-          <div class="print-title">${c.name} (${c.level}. Sınıf Deneme)</div>
-          <div class="print-meta">
-            Tarih: ${dateStr} | Gözetmen: ${teacher} | Doluluk: ${(c.students||[]).length}/${c.cap}
-          </div>
-        </div>
-      `;
+    state.students = rowsS.map(r => ({
+      no: String(r[idxNo] || "").trim(),
+      adsoyad: String(r[idxAd] || "").trim(),
+      sinif: String(r[idxSin] || "").trim()
+    })).filter(s => s.no && s.adsoyad);
 
-      if(printMode === 'list') {
-        // Liste Modu
-        const rows = (c.students||[]).map((no, i) => {
-          const s = this.data.students.find(x => x.no === no) || {no, adsoyad:"?", sinif:"?"};
-          return `<tr>
-            <td style="width:30px">${i+1}</td>
-            <td style="width:80px">${s.no}</td>
-            <td>${s.adsoyad}</td>
-            <td style="width:80px">${s.sinif}</td>
-            <td style="width:100px"></td>
-          </tr>`;
-        }).join("");
-        
-        content = `
-          <table>
-            <thead><tr><th>#</th><th>No</th><th>Ad Soyad</th><th>Sınıf</th><th>İmza</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        `;
-      } else {
-        // Oturma Planı Modu
-        let seats = "";
-        for(let i=0; i<c.cap; i++) {
-           const no = c.students && c.students[i];
-           const s = no ? (this.data.students.find(x => x.no === no) || {adsoyad:no}) : null;
-           seats += `
-             <div class="seat-card">
-               <div class="seat-idx">${i+1}</div>
-               <div class="seat-name">${s ? s.adsoyad : 'BOŞ'}</div>
-             </div>
-           `;
-        }
-        content = `<div class="seat-grid" style="--cols:${c.cols}">${seats}</div>`;
-      }
+    // Öğretmenler
+    const urlT = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tTab)}`;
+    const resT = await fetch(urlT);
+    const txtT = await resT.text();
+    const jsonT = JSON.parse(txtT.substr(47).slice(0, -2));
+    const rowsT = jsonT.table.rows.map(r => r.c.map(c => c ? c.v : ""));
+    
+    state.teachers = rowsT.map(r => ({
+      id: String(r[0]||""), ad: String(r[1]||""), brans: String(r[2]||"")
+    })).filter(t => t.id && t.ad);
 
-      page.innerHTML = header + content;
-      root.appendChild(page);
-    });
-  },
+    state.cfg.sheetId = sid;
+    state.cfg.tabStudents = sTab;
+    state.cfg.tabTeachers = tTab;
+    
+    renderDataLists();
+    alert(`Veriler çekildi: ${state.students.length} öğrenci, ${state.teachers.length} öğretmen.`);
+  } catch(e) {
+    console.error(e);
+    alert('Hata: Google Sheet okunamadı. ID ve Sayfa isimlerini kontrol edin.');
+  }
+}
+$('btnFetchSheets').onclick = fetchSheetData;
 
-  // --- Genel Yardımcılar ---
-  saveLocal() {
-    localStorage.setItem("planAppV2", JSON.stringify(this.data));
-  },
-  loadLocal() {
-    const str = localStorage.getItem("planAppV2");
-    if(str) {
-      try {
-         const json = JSON.parse(str);
-         this.data = { ...this.data, ...json };
-      } catch(e) { console.log("Veri okunamadı"); }
-    }
-  },
-  exportData() {
-    const blob = new Blob([JSON.stringify(this.data)], {type: "application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "okul_plan_yedek.json";
-    a.click();
-  },
-  importData(input) {
-    const f = input.files[0];
-    if(!f) return;
-    const r = new FileReader();
-    r.onload = (e) => {
-      try {
-        this.data = JSON.parse(e.target.result);
-        this.saveLocal();
-        location.reload();
-      } catch(x){ toast("Dosya bozuk.", "error"); }
-    };
-    r.readAsText(f);
-  },
-  applyTheme() {
-    if(this.data.cfg.theme === "dark") document.body.classList.add("dark-mode");
-  },
-  toggleTheme() {
-    this.data.cfg.theme = this.data.cfg.theme === "light" ? "dark" : "light";
-    document.body.classList.toggle("dark-mode");
-    this.saveLocal();
-  },
-  updateUI() {
-    // Sadece toplu UI refresh gereken yerler
-    this.renderClasses();
-    this.updateStats();
+function renderSettingsUI(){
+  $('sheetId').value = state.cfg.sheetId || "";
+  $('sheetStudentTab').value = state.cfg.tabStudents || "Deneme";
+  $('sheetTeacherTab').value = state.cfg.tabTeachers || "Ogretmenler";
+  if(state.cfg.theme) applyTheme(state.cfg.theme);
+}
+
+function renderDataLists(){
+  $('listStudents').innerHTML = state.students.map(s => 
+    `<div class="student-item"><span><b>${s.no}</b> ${s.adsoyad}</span> <span class="badge">${s.sinif}</span></div>`
+  ).join('');
+  
+  $('listTeachers').innerHTML = state.teachers.map(t => 
+    `<div class="student-item"><span>${t.ad}</span> <small>${t.brans}</small></div>`
+  ).join('');
+
+  $('kpiStd').textContent = state.students.length;
+  $('kpiTch').textContent = state.teachers.length;
+}
+
+/* ================= SINIF YÖNETİMİ ================= */
+$('btnAddClass').onclick = () => {
+  state.classes.push({
+    id: uid(), name: `Sınıf ${state.classes.length+1}`, cap: 20, level: 8,
+    teacherIds: [], rows: 5, cols: 4, students: []
+  });
+  renderClassTable();
+};
+$('btnClearClasses').onclick = () => { if(confirm('Silinsin mi?')) { state.classes = []; renderClassTable(); } };
+
+function renderClassTable(){
+  const tbody = $('tbodyClasses'); tbody.innerHTML = '';
+  state.classes.forEach((cls, idx) => {
+    // Satır hesapla
+    cls.rows = Math.ceil((parseInt(cls.cap)||1) / (parseInt(cls.cols)||1));
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${cls.name}" onchange="updateClass('${cls.id}', 'name', this.value)"></td>
+      <td><input type="number" value="${cls.cap}" style="width:60px" onchange="updateClass('${cls.id}', 'cap', this.value)"></td>
+      <td>
+        <select onchange="updateClass('${cls.id}', 'level', this.value)">
+          <option value="8" ${cls.level==8?'selected':''}>8</option>
+          <option value="7" ${cls.level==7?'selected':''}>7</option>
+          <option value="6" ${cls.level==6?'selected':''}>6</option>
+          <option value="5" ${cls.level==5?'selected':''}>5</option>
+        </select>
+      </td>
+      <td>
+        <select multiple style="height:40px" onchange="updateClassTeacher('${cls.id}', this)">
+          ${state.teachers.map(t => `<option value="${t.id}" ${cls.teacherIds.includes(t.id)?'selected':''}>${t.ad}</option>`).join('')}
+        </select>
+      </td>
+      <td><input value="${cls.rows}" disabled style="width:60px; background:transparent; border:none"></td>
+      <td><input type="number" value="${cls.cols}" style="width:60px" onchange="updateClass('${cls.id}', 'cols', this.value)"></td>
+      <td><button class="danger btn-sm" onclick="deleteClass('${cls.id}')">Sil</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  $('kpiCls').textContent = state.classes.length;
+}
+
+window.updateClass = (id, field, val) => {
+  const c = state.classes.find(x=>x.id===id);
+  if(c) { c[field] = (field==='cap'||field==='cols'||field==='level') ? parseInt(val) : val; renderClassTable(); }
+};
+window.updateClassTeacher = (id, sel) => {
+  const c = state.classes.find(x=>x.id===id);
+  if(c) { c.teacherIds = Array.from(sel.selectedOptions).map(o=>o.value); }
+};
+window.deleteClass = (id) => {
+  if(confirm('Sınıfı silmek istediğine emin misin?')) {
+    state.classes = state.classes.filter(x => x.id !== id);
+    renderClassTable();
   }
 };
 
-/* ===================== GLOBAL HELPER ===================== */
-let printMode = 'list';
+/* ================= TAKVİM ================= */
+$('btnAddExam').onclick = () => {
+  const d = $('calDate').value; 
+  if(!d) return alert('Tarih seçin');
+  const lvl = parseInt($('calLevel').value);
+  const exist = state.calendar.findIndex(c => c.level === lvl);
+  if(exist > -1) state.calendar[exist].date = d;
+  else state.calendar.push({ level: lvl, date: d });
+  state.calendar.sort((a,b)=>a.level-b.level);
+  renderCalendar();
+};
 
-window.addEventListener("beforeprint", () => {
-  app.print(printMode);
-});
+function renderCalendar(){
+  const list = $('calendarList'); list.innerHTML = '';
+  state.calendar.forEach(c => {
+    const d = new Date(c.date).toLocaleDateString('tr-TR');
+    list.innerHTML += `
+      <div class="draggable-chip" style="cursor:default">
+        <b>${c.level}. Sınıf Deneme</b>: ${d}
+        <button class="danger btn-sm" onclick="delCalendar(${c.level})">Sil</button>
+      </div>`;
+  });
+}
+window.delCalendar = (lvl) => {
+  state.calendar = state.calendar.filter(c => c.level !== lvl);
+  renderCalendar();
+};
 
-function switchTab(id) {
-  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+/* ================= ATAMA & DRAG DROP (DÜZELTİLDİ) ================= */
+$('assignLevelFilter').onchange = renderAssignUI;
+$('assignSort').onchange = renderAssignUI;
+
+function getStudentsForAssign(){
+  const lvl = $('assignLevelFilter').value;
+  let arr = state.students.filter(s => s.sinif.startsWith(lvl));
+  const sort = $('assignSort').value;
+  if(sort === 'ad') arr.sort((a,b) => a.adsoyad.localeCompare(b.adsoyad));
+  if(sort === 'no') arr.sort((a,b) => parseInt(a.no) - parseInt(b.no));
+  if(sort === 'sinif') arr.sort((a,b) => a.sinif.localeCompare(b.sinif));
+  return arr;
+}
+
+function renderAssignUI(){
+  const container = $('assignContainer'); container.innerHTML = '';
+  const lvl = $('assignLevelFilter').value;
+  const students = getStudentsForAssign();
   
-  if(id === "atama") app.renderAssignment();
-  if(id === "siniflar") app.renderClasses();
+  // 1. Havuz (Atanmamışlar)
+  const poolCol = document.createElement('div');
+  poolCol.className = 'col';
+  poolCol.style.flex = "0 0 280px";
+  
+  // Kimler atanmış?
+  const assignedSet = new Set();
+  state.classes.forEach(c => { if(c.students) c.students.forEach(s => assignedSet.add(s)); });
+  
+  const poolList = document.createElement('div');
+  poolList.className = 'drop-zone';
+  poolList.dataset.type = 'pool'; // Hedef tipi
+  
+  poolList.innerHTML = `<h3 style="margin-top:0; font-size:1rem; color:var(--muted)">Öğrenci Havuzu (${lvl}. Sınıf)</h3>`;
+  
+  students.forEach(s => {
+    const isAssigned = assignedSet.has(s.no);
+    if(!isAssigned) {
+      poolList.appendChild(createChip(s));
+    } else {
+      // Atanmışları silik göster (isteğe bağlı, burada göstermeyelim veya ayrı liste yapalım)
+      // Karışıklık olmasın diye havuza sadece boşları koyuyoruz.
+    }
+  });
+  
+  poolCol.appendChild(poolList);
+  container.appendChild(poolCol);
+  
+  // 2. Sınıflar
+  const relevantClasses = state.classes.filter(c => c.level == lvl);
+  relevantClasses.forEach(c => {
+    const col = document.createElement('div');
+    col.className = 'col';
+    
+    const zone = document.createElement('div');
+    zone.className = 'drop-zone';
+    zone.dataset.type = 'class';
+    zone.dataset.id = c.id;
+    
+    const current = (c.students || []).length;
+    const header = document.createElement('div');
+    header.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px">
+        <b>${c.name}</b>
+        <span class="${current>c.cap ? 'text-danger':''}">${current}/${c.cap}</span>
+      </div>
+      <div style="font-size:0.8rem; color:var(--muted); margin-bottom:8px">${c.rows}x${c.cols}</div>
+    `;
+    zone.appendChild(header);
+    
+    (c.students || []).forEach(sNo => {
+      const st = state.students.find(x => x.no === sNo);
+      if(st) zone.appendChild(createChip(st, c.id));
+      else zone.appendChild(createChip({no:sNo, adsoyad:'Bilinmeyen', sinif:'?'}, c.id));
+    });
+    
+    col.appendChild(zone);
+    container.appendChild(col);
+  });
+  
+  initDragAndDrop();
 }
 
-function toast(msg, type="info") {
-  const div = document.createElement("div");
-  div.className = `toast ${type}`;
-  div.textContent = msg;
-  document.getElementById("toastArea").appendChild(div);
-  setTimeout(() => div.remove(), 3000);
+function createChip(student, currentClassId = null) {
+  const el = document.createElement('div');
+  el.className = 'draggable-chip';
+  el.draggable = true;
+  el.dataset.no = student.no;
+  el.innerHTML = `
+    <div>
+      <div style="font-weight:600">${student.adsoyad}</div>
+      <div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div>
+    </div>
+  `;
+  
+  if(currentClassId) {
+    const btn = document.createElement('button');
+    btn.className = 'danger btn-sm';
+    btn.innerHTML = '&times;';
+    btn.title = 'Çıkar';
+    btn.onclick = (e) => {
+      e.stopPropagation(); // Sürüklemeyi tetikleme
+      removeFromClass(student.no, currentClassId);
+    };
+    el.appendChild(btn);
+  }
+  
+  return el;
 }
 
-document.getElementById("themeToggle").onclick = () => app.toggleTheme();
+/* ====== DRAG & DROP LOGIC (FIXED) ====== */
+function initDragAndDrop() {
+  const chips = document.querySelectorAll('.draggable-chip');
+  const zones = document.querySelectorAll('.drop-zone');
+  
+  chips.forEach(chip => {
+    chip.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', chip.dataset.no);
+      e.dataTransfer.effectAllowed = 'move';
+      chip.style.opacity = '0.5';
+    });
+    chip.addEventListener('dragend', () => {
+      chip.style.opacity = '1';
+      zones.forEach(z => z.classList.remove('drag-over'));
+    });
+  });
+  
+  zones.forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault(); // Drop'a izin ver
+      e.dataTransfer.dropEffect = 'move';
+      zone.classList.add('drag-over');
+    });
+    
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-over');
+    });
+    
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      
+      const studentNo = e.dataTransfer.getData('text/plain');
+      if(!studentNo) return;
+      
+      // Target Zone tespiti (closest ile güvenli hale getirdik)
+      const targetZone = e.target.closest('.drop-zone');
+      if(!targetZone) return;
+      
+      const targetType = targetZone.dataset.type;
+      const targetClassId = targetZone.dataset.id;
+      
+      // Öğrencinin şu an nerede olduğunu bul
+      let sourceClassId = null;
+      state.classes.forEach(c => {
+        if((c.students||[]).includes(studentNo)) sourceClassId = c.id;
+      });
+      
+      // Eğer aynı yere bırakıldıysa işlem yapma
+      if(sourceClassId === targetClassId && targetType === 'class') return;
+      
+      // Havuza bırakma (Sınıftan çıkarma)
+      if(targetType === 'pool') {
+        if(sourceClassId) removeFromClass(studentNo, sourceClassId);
+        return;
+      }
+      
+      // Sınıfa bırakma
+      if(targetType === 'class') {
+        const targetClass = state.classes.find(c => c.id === targetClassId);
+        if(!targetClass.students) targetClass.students = [];
+        
+        // Kapasite kontrolü
+        if(targetClass.students.length >= targetClass.cap) {
+          alert('Sınıf kapasitesi dolu!');
+          return;
+        }
+        
+        // Eski yerden sil
+        if(sourceClassId) {
+          const src = state.classes.find(c => c.id === sourceClassId);
+          src.students = src.students.filter(x => x !== studentNo);
+        }
+        
+        // Yeni yere ekle
+        if(!targetClass.students.includes(studentNo)) {
+          targetClass.students.push(studentNo);
+        }
+        
+        renderAssignUI();
+      }
+    });
+  });
+}
 
-// Başlat
-app.init();
+function removeFromClass(no, classId){
+  const c = state.classes.find(x=>x.id===classId);
+  if(c) {
+    c.students = c.students.filter(x => x !== no);
+    renderAssignUI();
+  }
+}
+
+/* ================= OTO DAĞITIM & KARIŞTIR ================= */
+$('btnAutoDistribute').onclick = () => {
+  const lvl = $('assignLevelFilter').value;
+  const students = getStudentsForAssign();
+  const targets = state.classes.filter(c => c.level == lvl);
+  
+  // Temizle (Sadece bu seviyedekileri)
+  targets.forEach(c => c.students = []);
+  
+  // Basit sıralı dağıtım
+  let stIdx = 0;
+  targets.forEach(c => {
+    const need = c.cap;
+    for(let i=0; i<need; i++){
+      if(stIdx < students.length) {
+        if(!c.students) c.students=[];
+        c.students.push(students[stIdx].no);
+        stIdx++;
+      }
+    }
+  });
+  renderAssignUI();
+};
+
+$('btnShuffle').onclick = () => {
+  const lvl = $('assignLevelFilter').value;
+  const targets = state.classes.filter(c => c.level == lvl);
+  
+  // Tüm bu seviyedeki atanmışları topla
+  let pool = [];
+  targets.forEach(c => {
+    if(c.students) pool.push(...c.students);
+    c.students = [];
+  });
+  
+  // Karıştır
+  pool.sort(() => Math.random() - 0.5);
+  
+  // Geri Dağıt
+  let pIdx = 0;
+  targets.forEach(c => {
+    for(let i=0; i<c.cap; i++){
+      if(pIdx < pool.length){
+        c.students.push(pool[pIdx]);
+        pIdx++;
+      }
+    }
+  });
+  renderAssignUI();
+};
+
+$('btnClearAssign').onclick = () => {
+  if(confirm('Bu seviyedeki atamalar temizlensin mi?')){
+    const lvl = $('assignLevelFilter').value;
+    state.classes.filter(c => c.level == lvl).forEach(c => c.students = []);
+    renderAssignUI();
+  }
+};
+
+/* ================= YAZDIR ================= */
+const app = {
+  printList: () => {
+    const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
+    state.classes.forEach(c => {
+      const page = document.createElement('div'); page.className = 'print-page';
+      const tch = c.teacherIds.map(id => state.teachers.find(t=>t.id===id)?.ad || "").join(', ');
+      const cal = state.calendar.find(x=>x.level===c.level)?.date || "";
+      
+      let html = `
+        <h2 style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px">${c.name} - Sınav İmza Listesi</h2>
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold">
+           <span>Tarih: ${cal}</span> <span>Gözetmen: ${tch}</span> <span>Düzey: ${c.level}</span>
+        </div>
+        <table border="1" style="width:100%; border-collapse:collapse">
+          <thead><tr><th width="50">No</th><th>Öğrenci No</th><th>Ad Soyad</th><th>Sınıf</th><th>İmza</th></tr></thead>
+          <tbody>
+      `;
+      (c.students||[]).forEach((sNo, i) => {
+        const s = state.students.find(x=>x.no===sNo) || {no:sNo, adsoyad:'?', sinif:''};
+        html += `<tr><td>${i+1}</td><td>${s.no}</td><td>${s.adsoyad}</td><td>${s.sinif}</td><td></td></tr>`;
+      });
+      html += `</tbody></table>`;
+      page.innerHTML = html;
+      area.appendChild(page);
+    });
+    window.print();
+    area.classList.add('hidden');
+  },
+  
+  printSeating: () => {
+    const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
+    state.classes.forEach(c => {
+      const page = document.createElement('div'); page.className = 'print-page';
+      const tch = c.teacherIds.map(id => state.teachers.find(t=>t.id===id)?.ad || "").join(', ');
+      const cal = state.calendar.find(x=>x.level===c.level)?.date || "";
+      
+      // Grid oluştur
+      const totalSeats = c.cap;
+      let gridHtml = `<div class="seat-grid" style="--cols: ${c.cols}">`;
+      
+      for(let i=0; i<totalSeats; i++){
+        const sNo = (c.students||[])[i];
+        const name = sNo ? (state.students.find(x=>x.no===sNo)?.adsoyad || sNo) : "BOŞ";
+        gridHtml += `
+          <div class="seat">
+            <div style="font-size:10px; text-align:right">${i+1}</div>
+            <svg viewBox="0 0 100 60"><rect x="10" y="10" width="80" height="40" rx="5" fill="none" stroke="black" stroke-width="2"/></svg>
+            <div style="font-size:12px; font-weight:bold; margin-top:5px; height:2.4em; overflow:hidden">${name}</div>
+          </div>
+        `;
+      }
+      gridHtml += `</div>`;
+      
+      page.innerHTML = `
+        <h2 style="text-align:center">${c.name} Oturma Planı</h2>
+        <div style="text-align:center; margin-bottom:20px">${cal} - ${tch}</div>
+        ${gridHtml}
+      `;
+      area.appendChild(page);
+    });
+    window.print();
+    area.classList.add('hidden');
+  }
+};
+
+/* ================= INIT & THEME ================= */
+$('btnTheme').onclick = () => {
+  state.cfg.theme = state.cfg.theme === 'light' ? 'dark' : 'light';
+  applyTheme(state.cfg.theme);
+};
+
+function applyTheme(thm){
+  if(thm === 'light') document.body.classList.add('theme-light');
+  else document.body.classList.remove('theme-light');
+}
+
+function initApp(){
+  applyTheme('dark');
+  // LocalStorage kontrolü (opsiyonel, Firebase'den çekmek daha mantıklı ama kullanıcı isterse)
+  // Şimdilik boş başlatıyoruz, kullanıcı Firebase'den yükle diyerek veriyi getirecek.
+}
 </script>
 </body>
 </html>
