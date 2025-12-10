@@ -55,9 +55,9 @@
     overflow-y: auto;
     transition: background 0.3s ease, color 0.3s ease;
   }
-  
+   
   .hidden{display:none !important}
-  
+   
   .wrap{
     max-width:1400px;
     margin: 40px auto;
@@ -107,16 +107,16 @@
   }
   input[type="date"] { cursor: pointer; }
   input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow: var(--focus-ring); }
-  
+   
   button{ width:auto; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:6px; justify-content:center; }
   button:active { transform: translateY(1px); }
-  
+   
   button.primary{ background: var(--accent); border-color: var(--accent); color: white; }
   button.primary:hover{ background: var(--accent-hover); }
-  
+   
   button.danger{ background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
   button.danger:hover{ background: rgba(239, 68, 68, 0.2); }
-  
+   
   button.firebase-btn { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--ok); }
   button.firebase-btn:hover { background: rgba(16, 185, 129, 0.2); }
 
@@ -153,7 +153,7 @@
   .col{flex:1; min-width:300px}
   .card{ background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
   .card h2 { margin-top:0; font-size:1.1rem; color: var(--text); margin-bottom: 16px; display:flex; align-items:center; justify-content:space-between; }
-  
+   
   .list-container {
     height: 400px; overflow-y:auto; 
     border:1px solid var(--border); border-radius: var(--radius); 
@@ -162,10 +162,12 @@
   .student-item {
     padding: 10px; margin-bottom:6px;
     background: var(--card); border:1px solid var(--border);
+    /* Sol border dinamik atanacak ama varsayılanı burada */
+    border-left-width: 5px;
     border-radius: 8px; display:flex; justify-content:space-between; align-items:center;
     font-size: 0.9rem;
   }
-  
+   
   /* ====== Sürükle Bırak & Yeni Atama Dizaynı ====== */
   .assign-layout {
     display: flex;
@@ -219,12 +221,12 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
   .draggable-chip:active { cursor: grabbing; transform: scale(0.98); }
-  
+   
   /* ====== Tablo ====== */
   table { width:100%; border-collapse:collapse; font-size:0.9rem; }
   th { text-align:left; color:var(--muted); font-weight:600; padding:10px; border-bottom:1px solid var(--border); }
   td { padding:10px; border-bottom:1px solid var(--border); color:var(--text); vertical-align: top;}
-  
+   
   /* ====== KPI Paneli ====== */
   .kpi-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:16px; }
   .kpi-card { background:linear-gradient(145deg, var(--card), var(--field)); padding:12px; border-radius:var(--radius); border:1px solid var(--border); text-align:center; }
@@ -561,7 +563,7 @@
     try { await set(ref(db, 'denemeotur/' + path), data); alert('Başarıyla kaydedildi (Firebase).'); } 
     catch(e) { console.error(e); alert('Hata: ' + e.message); }
   };
-  
+   
   window.fbLoad = async (path) => {
     try {
       const snap = await get(child(rootRef, 'denemeotur/' + path));
@@ -705,8 +707,18 @@ function renderSettingsUI(){
   $('sheetTeacherTab').value = state.cfg.tabTeachers;
   if(state.cfg.theme) applyTheme(state.cfg.theme);
 }
+// DÜZELTME 1: Liste görünümünde sınıfa göre renk atanması
 function renderDataLists(){
-  $('listStudents').innerHTML = state.students.map(s => `<div class="student-item"><span><b>${s.no}</b> ${s.adsoyad}</span> <span class="badge">${s.sinif}</span></div>`).join('');
+  $('listStudents').innerHTML = state.students.map(s => {
+    // Sınıf rengini al
+    const color = getClassColor(s.sinif);
+    // Border rengini inline style olarak ekle
+    return `<div class="student-item" style="border-left-color: ${color} !important;">
+      <span><b>${s.no}</b> ${s.adsoyad}</span> 
+      <span class="badge">${s.sinif}</span>
+    </div>`;
+  }).join('');
+  
   $('listTeachers').innerHTML = state.teachers.map(t => `<div class="student-item"><span>${t.ad}</span> <small>${t.brans}</small></div>`).join('');
   $('kpiStd').textContent = state.students.length;
   $('kpiTch').textContent = state.teachers.length;
@@ -727,7 +739,7 @@ function createTeacherSelector(classId, selectedIds) {
   btn.className = 'multi-select-btn';
   const selectedNames = state.teachers.filter(t => selectedIds.includes(t.id)).map(t => t.ad);
   btn.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Gözetmen Seç...';
-  
+   
   const dropdown = document.createElement('div');
   dropdown.className = 'multi-select-dropdown';
 
@@ -838,39 +850,39 @@ function getStudentsForAssign(){
   const lvl = $('assignLevelFilter').value;
   let arr = state.students.filter(s => s.sinif.startsWith(lvl));
   const sort = $('assignSort').value;
-  
+   
   if(sort === 'ad') arr.sort((a,b) => a.adsoyad.localeCompare(b.adsoyad, 'tr'));
   if(sort === 'no') arr.sort((a,b) => parseInt(a.no) - parseInt(b.no));
   if(sort === 'sinif') arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr'));
-  
+   
   if(sort === 'soyad') {
     const getSurname = (fullName) => fullName.trim().split(' ').pop();
     arr.sort((a,b) => getSurname(a.adsoyad).localeCompare(getSurname(b.adsoyad), 'tr'));
   }
-  
+   
   // Fisher-Yates Kullanımı
   if(sort === 'rand') {
     arr = shuffleArray(arr);
   }
-  
+   
   return arr;
 }
 
 function renderAssignUI(){
   const poolList = $('assignPoolList'); poolList.innerHTML = '';
   const classGrid = $('assignClassGrid'); classGrid.innerHTML = '';
-  
+   
   const lvl = $('assignLevelFilter').value;
   const students = getStudentsForAssign();
-  
+   
   // 1. Havuzu Doldur
   const assignedSet = new Set();
   state.classes.forEach(c => { if(c.students) c.students.forEach(s => assignedSet.add(s)); });
-  
+   
   students.forEach(s => {
     if(!assignedSet.has(s.no)) poolList.appendChild(createChip(s));
   });
-  
+   
   // 2. Sınıf Gridini Doldur
   state.classes.filter(c => c.level == lvl).forEach(c => {
     const zone = document.createElement('div');
@@ -898,7 +910,7 @@ function renderAssignUI(){
     
     classGrid.appendChild(zone);
   });
-  
+   
   initDragAndDrop();
 }
 
@@ -906,7 +918,7 @@ function renderAssignUI(){
 function createChip(student, currentClassId = null) {
   const el = document.createElement('div');
   el.className = 'draggable-chip'; el.draggable = true; el.dataset.no = student.no;
-  
+   
   // Otomatik Sınıf Rengi Atama
   const clr = getClassColor(student.sinif);
   el.style.borderLeftColor = clr;
@@ -924,7 +936,7 @@ function initDragAndDrop() {
   const chips = document.querySelectorAll('.draggable-chip');
   // drop-zone classı hem pool hem class divlerinde var
   const zones = document.querySelectorAll('.drop-zone');
-  
+   
   chips.forEach(chip => {
     chip.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', chip.dataset.no);
@@ -943,7 +955,7 @@ function initDragAndDrop() {
       handleSwap(draggedNo, targetNo);
     });
   });
-  
+   
   zones.forEach(zone => {
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
     zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
@@ -981,7 +993,7 @@ function handleSwap(no1, no2) {
   let c1 = null, c2 = null;
   state.classes.forEach(c => { if((c.students||[]).includes(no1)) c1 = c; });
   state.classes.forEach(c => { if((c.students||[]).includes(no2)) c2 = c; });
-  
+   
   if(!c1 || !c2) return; 
   const idx1 = c1.students.indexOf(no1);
   const idx2 = c2.students.indexOf(no2);
@@ -1000,7 +1012,7 @@ $('btnAutoDistribute').onclick = () => {
   const students = getStudentsForAssign(); // Zaten shuffle edildi eğer 'rand' seçiliyse
   const targets = state.classes.filter(c => c.level == lvl);
   targets.forEach(c => c.students = []);
-  
+   
   let stIdx = 0;
   // Basit dağıtım yerine sırayla dağıtım (homojenlik için)
   let loop = true;
@@ -1015,7 +1027,7 @@ $('btnAutoDistribute').onclick = () => {
           }
       }
   }
-  
+   
   renderAssignUI();
 };
 $('btnClearAssign').onclick = () => {
@@ -1024,6 +1036,7 @@ $('btnClearAssign').onclick = () => {
 
 /* ================= YAZDIRMA & TASARIM GÜNCELLEMESİ ================= */
 const app = {
+  // DÜZELTME 2: Liste Yazdırma fonksiyonu güncellendi (Ortalama ve Kalınlık)
   printList: () => {
     const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
     state.classes.forEach(c => {
@@ -1038,12 +1051,28 @@ const app = {
            <span>Tarih: ${dFormatted}</span> <span>Gözetmen: ${tch}</span>
         </div>
         <table class="print-list-table">
-          <thead><tr><th width="40">#</th><th>No</th><th>Ad Soyad</th><th>Sınıf</th><th width="100">İmza</th></tr></thead>
+          <thead>
+            <tr>
+              <th width="40" style="text-align:center">#</th>
+              <th width="60" style="text-align:center">No</th>
+              <th style="font-weight:bold; text-align:left">Ad Soyad</th>
+              <th width="80" style="text-align:center">Sınıf</th>
+              <th width="100">İmza</th>
+            </tr>
+          </thead>
           <tbody>
       `;
       (c.students||[]).forEach((sNo, i) => {
         const s = state.students.find(x=>x.no===sNo) || {no:sNo, adsoyad:'?', sinif:''};
-        html += `<tr><td>${i+1}</td><td>${s.no}</td><td>${s.adsoyad}</td><td>${s.sinif}</td><td></td></tr>`;
+        // Satırlarda stil düzenlemesi: # ortala, No ortala/kalın, İsim kalın, Sınıf ortala
+        html += `
+            <tr>
+                <td style="text-align:center">${i+1}</td>
+                <td style="text-align:center; font-weight:bold">${s.no}</td>
+                <td style="font-weight:bold">${s.adsoyad}</td>
+                <td style="text-align:center">${s.sinif}</td>
+                <td></td>
+            </tr>`;
       });
       html += `</tbody></table>`;
       page.innerHTML = html;
@@ -1051,7 +1080,7 @@ const app = {
     });
     window.print(); area.classList.add('hidden');
   },
-  
+   
   // === YENİ: Oturma Planı Yazdırma (Kutu Tasarımı) ===
   printSeating: () => {
     const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
