@@ -483,8 +483,14 @@
 
 <script>
 /* ================= GLOBAL STATE ================= */
+// İstenilen ID buraya varsayılan olarak eklendi
 const state = {
-  cfg: { sheetId: "", tabStudents: "Deneme", tabTeachers: "Ogretmenler", theme: "dark" },
+  cfg: { 
+    sheetId: "1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw", 
+    tabStudents: "Deneme", 
+    tabTeachers: "Ogretmenler", 
+    theme: "dark" 
+  },
   students: [],
   teachers: [],
   classes: [], 
@@ -1058,8 +1064,7 @@ function applyTheme(thm){
 
 function initApp(){
   applyTheme('dark');
-  // LocalStorage kontrolü (opsiyonel, Firebase'den çekmek daha mantıklı ama kullanıcı isterse)
-  // Şimdilik boş başlatıyoruz, kullanıcı Firebase'den yükle diyerek veriyi getirecek.
+  renderSettingsUI(); // Varsayılan değerleri arayüze doldur
 }
 </script>
 </body>
