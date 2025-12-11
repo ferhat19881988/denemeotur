@@ -710,21 +710,16 @@ function renderSettingsUI(){
 // DÜZELTME 1: Liste görünümünde sınıfa göre renk atanması
 function renderDataLists(){
   $('listStudents').innerHTML = state.students.map(s => {
+    // Sınıf rengini al
     const color = getClassColor(s.sinif);
-    return `
-      <div class="student-item" style="border-left: 5px solid ${color}">
-        <span><b>${s.no}</b> ${s.adsoyad}</span>
-        <span class="badge">${s.sinif}</span>
-      </div>`;
+    // Border rengini inline style olarak ekle
+    return `<div class="student-item" style="border-left-color: ${color} !important;">
+      <span><b>${s.no}</b> ${s.adsoyad}</span> 
+      <span class="badge">${s.sinif}</span>
+    </div>`;
   }).join('');
-
-  $('listTeachers').innerHTML = state.teachers.map(t => `
-      <div class="student-item">
-        <span>${t.ad}</span> 
-        <small>${t.brans}</small>
-      </div>
-  `).join('');
-
+  
+  $('listTeachers').innerHTML = state.teachers.map(t => `<div class="student-item"><span>${t.ad}</span> <small>${t.brans}</small></div>`).join('');
   $('kpiStd').textContent = state.students.length;
   $('kpiTch').textContent = state.teachers.length;
 }
@@ -853,36 +848,23 @@ $('assignSort').onchange = renderAssignUI;
 
 function getStudentsForAssign(){
   const lvl = $('assignLevelFilter').value;
-
   let arr = state.students.filter(s => s.sinif.startsWith(lvl));
   const sort = $('assignSort').value;
-
-  // A: Ada göre
-  if(sort === 'ad') {
-    arr.sort((a,b) => a.adsoyad.localeCompare(b.adsoyad, 'tr'));
-  }
-
-  // B: Soyada göre
+   
+  if(sort === 'ad') arr.sort((a,b) => a.adsoyad.localeCompare(b.adsoyad, 'tr'));
+  if(sort === 'no') arr.sort((a,b) => parseInt(a.no) - parseInt(b.no));
+  if(sort === 'sinif') arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr'));
+   
   if(sort === 'soyad') {
-    const soy = x => x.adsoyad.trim().split(" ").pop();
-    arr.sort((a,b) => soy(a).localeCompare(soy(b), 'tr'));
+    const getSurname = (fullName) => fullName.trim().split(' ').pop();
+    arr.sort((a,b) => getSurname(a.adsoyad).localeCompare(getSurname(b.adsoyad), 'tr'));
   }
-
-  // C: Numaraya göre
-  if(sort === 'no') {
-    arr.sort((a,b) => Number(a.no) - Number(b.no));
-  }
-
-  // D: Sınıfa göre
-  if(sort === 'sinif') {
-    arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr'));
-  }
-
-  // E: Tam karışık
+   
+  // Fisher-Yates Kullanımı
   if(sort === 'rand') {
     arr = shuffleArray(arr);
   }
-
+   
   return arr;
 }
 
@@ -935,28 +917,18 @@ function renderAssignUI(){
 // === GÜNCELLENDİ: Sınıf Rengine Göre Chip Oluşturma ===
 function createChip(student, currentClassId = null) {
   const el = document.createElement('div');
-  el.className = 'draggable-chip';
-  el.draggable = true;
-  el.dataset.no = student.no;
-
+  el.className = 'draggable-chip'; el.draggable = true; el.dataset.no = student.no;
+   
+  // Otomatik Sınıf Rengi Atama
   const clr = getClassColor(student.sinif);
-  el.style.borderLeft = `5px solid ${clr}`;
+  el.style.borderLeftColor = clr;
 
-  el.innerHTML = `
-    <div>
-      <div style="font-weight:600">${student.adsoyad}</div>
-      <div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div>
-    </div>
-  `;
-
+  el.innerHTML = `<div><div style="font-weight:600">${student.adsoyad}</div><div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div></div>`;
   if(currentClassId) {
-    const btn = document.createElement('button');
-    btn.className = 'danger btn-sm';
-    btn.innerHTML = '&times;';
+    const btn = document.createElement('button'); btn.className = 'danger btn-sm'; btn.innerHTML = '&times;';
     btn.onclick = (e) => { e.stopPropagation(); removeFromClass(student.no, currentClassId); };
     el.appendChild(btn);
   }
-
   return el;
 }
 
@@ -1037,28 +1009,25 @@ function removeFromClass(no, classId){
 
 $('btnAutoDistribute').onclick = () => {
   const lvl = $('assignLevelFilter').value;
-
-  // Sıralama artık getStudentsForAssign içinde doğru yapılmış şekilde geliyor
-  const students = getStudentsForAssign();
-
+  const students = getStudentsForAssign(); // Zaten shuffle edildi eğer 'rand' seçiliyse
   const targets = state.classes.filter(c => c.level == lvl);
   targets.forEach(c => c.students = []);
-
-  let idx = 0;
-  let more = true;
-
-  while(more && idx < students.length) {
-    more = false;
-
-    for(let c of targets) {
-      if(c.students.length < c.cap && idx < students.length) {
-        c.students.push(students[idx].no);
-        idx++;
-        more = true;
+   
+  let stIdx = 0;
+  // Basit dağıtım yerine sırayla dağıtım (homojenlik için)
+  let loop = true;
+  while(loop && stIdx < students.length) {
+      loop = false;
+      for(let c of targets) {
+          if(!c.students) c.students = [];
+          if(c.students.length < c.cap && stIdx < students.length) {
+              c.students.push(students[stIdx].no);
+              stIdx++;
+              loop = true;
+          }
       }
-    }
   }
-
+   
   renderAssignUI();
 };
 $('btnClearAssign').onclick = () => {
