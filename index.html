@@ -598,18 +598,18 @@ function shuffleArray(array) {
   return array;
 }
 
-// === GÜNCEL: Sınıf ismine göre renk üretici (8A sarı, 8B yeşil, diğerleri için fallback) ===
+// === YENİ: Sınıf ismine göre otomatik renk üretici (Sınırsız sınıf desteği) ===
 function getClassColor(str) {
-    if (!str) return '#64748b';
-    const key = String(str).trim().toUpperCase().replace(/\s+/g, '').replace(/-/g, '');
-
-    // TAMAMEN OTOMATİK: sabit map yok
+    if(!str) return '#ccc';
     let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-        hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    // Basit hash fonksiyonu
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
+    // HSL renk uzayı kullanarak pastel ama belirgin renkler üretelim
     const hue = Math.abs(hash % 360);
-    return `hsl(${hue}, 70%, 45%)`;
+    // Saturation %70, Lightness %40 (Koyu modda da açık modda da iyi görünmesi için orta-koyu)
+    return `hsl(${hue}, 70%, 45%)`; 
 }
 
 /* ================= FIREBASE HANDLERS ================= */
@@ -711,13 +711,20 @@ function renderSettingsUI(){
 function renderDataLists(){
   $('listStudents').innerHTML = state.students.map(s => {
     const color = getClassColor(s.sinif);
-    return `<div class="student-item" style="border-left-color: ${color} !important;">
-      <span><b>${s.no}</b> ${s.adsoyad}</span> 
-      <span class="badge">${s.sinif}</span>
-    </div>`;
+    return `
+      <div class="student-item" style="border-left: 5px solid ${color}">
+        <span><b>${s.no}</b> ${s.adsoyad}</span>
+        <span class="badge">${s.sinif}</span>
+      </div>`;
   }).join('');
-  
-  $('listTeachers').innerHTML = state.teachers.map(t => `<div class="student-item"><span>${t.ad}</span> <small>${t.brans}</small></div>`).join('');
+
+  $('listTeachers').innerHTML = state.teachers.map(t => `
+      <div class="student-item">
+        <span>${t.ad}</span> 
+        <small>${t.brans}</small>
+      </div>
+  `).join('');
+
   $('kpiStd').textContent = state.students.length;
   $('kpiTch').textContent = state.teachers.length;
 }
@@ -782,6 +789,7 @@ document.addEventListener('click', () => {
 function renderClassTable(){
   const tbody = $('tbodyClasses'); tbody.innerHTML = '';
   state.classes.forEach(cls => {
+    // Kapasite değişirse satır sayısını otomatik ayarla (örnek mantık)
     cls.rows = Math.ceil((parseInt(cls.cap)||1) / (parseInt(cls.cols)||1));
     const tr = document.createElement('tr');
     
@@ -839,57 +847,40 @@ function renderCalendar(){
 }
 window.delCalendar = (lvl) => { state.calendar = state.calendar.filter(c => c.level !== lvl); renderCalendar(); };
 
-/* ================= ATAMA & DRAG DROP ================= */
+/* ================= ATAMA & DRAG DROP (PROFESYONEL UI) ================= */
 $('assignLevelFilter').onchange = renderAssignUI;
 $('assignSort').onchange = renderAssignUI;
 
-// GÜNCEL: Sırala seçimine göre liste üreten fonksiyon
 function getStudentsForAssign(){
   const lvl = $('assignLevelFilter').value;
+
+  let arr = state.students.filter(s => s.sinif.startsWith(lvl));
   const sort = $('assignSort').value;
 
-  // Seçilen düzeydeki öğrenciler
-  const base = state.students.filter(s => (s.sinif || '').toString().startsWith(lvl));
-
-  // 1) Tam Karışık: sınıfa göre gruplu, dengeli rastgele
-  if(sort === 'rand') {
-    const groups = {};
-    base.forEach(s => {
-      const key = (s.sinif || '').toString().trim();
-      if(!groups[key]) groups[key] = [];
-      groups[key].push(s);
-    });
-
-    // Her sınıf kendi içinde karışsın
-    Object.values(groups).forEach(list => shuffleArray(list));
-
-    const keys = Object.keys(groups);
-    const result = [];
-    let added = true;
-    while(added) {
-      added = false;
-      for(const k of keys) {
-        if(groups[k] && groups[k].length > 0) {
-          result.push(groups[k].shift());
-          added = true;
-        }
-      }
-    }
-    return result;
-  }
-
-  // 2) Diğer sıralama seçenekleri: HİÇ karıştırma yok, ölçüte göre sırala
-  let arr = [...base];
-
+  // A: Ada göre
   if(sort === 'ad') {
     arr.sort((a,b) => a.adsoyad.localeCompare(b.adsoyad, 'tr'));
-  } else if(sort === 'no') {
-    arr.sort((a,b) => parseInt(a.no) - parseInt(b.no));
-  } else if(sort === 'sinif') {
-    arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr') || (parseInt(a.no)-parseInt(b.no)));
-  } else if(sort === 'soyad') {
-    const getSurname = fullName => fullName.trim().split(' ').pop();
-    arr.sort((a,b) => getSurname(a.adsoyad).localeCompare(getSurname(b.adsoyad), 'tr'));
+  }
+
+  // B: Soyada göre
+  if(sort === 'soyad') {
+    const soy = x => x.adsoyad.trim().split(" ").pop();
+    arr.sort((a,b) => soy(a).localeCompare(soy(b), 'tr'));
+  }
+
+  // C: Numaraya göre
+  if(sort === 'no') {
+    arr.sort((a,b) => Number(a.no) - Number(b.no));
+  }
+
+  // D: Sınıfa göre
+  if(sort === 'sinif') {
+    arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr'));
+  }
+
+  // E: Tam karışık
+  if(sort === 'rand') {
+    arr = shuffleArray(arr);
   }
 
   return arr;
@@ -941,25 +932,37 @@ function renderAssignUI(){
   initDragAndDrop();
 }
 
-// Öğrenci chip’i: sınıfa göre renkli sol şerit
+// === GÜNCELLENDİ: Sınıf Rengine Göre Chip Oluşturma ===
 function createChip(student, currentClassId = null) {
   const el = document.createElement('div');
-  el.className = 'draggable-chip'; el.draggable = true; el.dataset.no = student.no;
-   
-  const clr = getClassColor(student.sinif);
-  el.style.borderLeftColor = clr;
+  el.className = 'draggable-chip';
+  el.draggable = true;
+  el.dataset.no = student.no;
 
-  el.innerHTML = `<div><div style="font-weight:600">${student.adsoyad}</div><div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div></div>`;
+  const clr = getClassColor(student.sinif);
+  el.style.borderLeft = `5px solid ${clr}`;
+
+  el.innerHTML = `
+    <div>
+      <div style="font-weight:600">${student.adsoyad}</div>
+      <div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div>
+    </div>
+  `;
+
   if(currentClassId) {
-    const btn = document.createElement('button'); btn.className = 'danger btn-sm'; btn.innerHTML = '&times;';
+    const btn = document.createElement('button');
+    btn.className = 'danger btn-sm';
+    btn.innerHTML = '&times;';
     btn.onclick = (e) => { e.stopPropagation(); removeFromClass(student.no, currentClassId); };
     el.appendChild(btn);
   }
+
   return el;
 }
 
 function initDragAndDrop() {
   const chips = document.querySelectorAll('.draggable-chip');
+  // drop-zone classı hem pool hem class divlerinde var
   const zones = document.querySelectorAll('.drop-zone');
    
   chips.forEach(chip => {
@@ -970,6 +973,7 @@ function initDragAndDrop() {
     });
     chip.addEventListener('dragend', () => { chip.style.opacity = '1'; zones.forEach(z => z.classList.remove('drag-over')); });
     
+    // Swap için chip üzerine drop
     chip.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
     chip.addEventListener('drop', e => {
       e.preventDefault(); e.stopPropagation();
@@ -1033,32 +1037,37 @@ function removeFromClass(no, classId){
 
 $('btnAutoDistribute').onclick = () => {
   const lvl = $('assignLevelFilter').value;
+
+  // Sıralama artık getStudentsForAssign içinde doğru yapılmış şekilde geliyor
   const students = getStudentsForAssign();
+
   const targets = state.classes.filter(c => c.level == lvl);
   targets.forEach(c => c.students = []);
-   
-  let stIdx = 0;
-  let loop = true;
-  while(loop && stIdx < students.length) {
-      loop = false;
-      for(let c of targets) {
-          if(!c.students) c.students = [];
-          if(c.students.length < c.cap && stIdx < students.length) {
-              c.students.push(students[stIdx].no);
-              stIdx++;
-              loop = true;
-          }
+
+  let idx = 0;
+  let more = true;
+
+  while(more && idx < students.length) {
+    more = false;
+
+    for(let c of targets) {
+      if(c.students.length < c.cap && idx < students.length) {
+        c.students.push(students[idx].no);
+        idx++;
+        more = true;
       }
+    }
   }
-   
+
   renderAssignUI();
 };
 $('btnClearAssign').onclick = () => {
   if(confirm('Temizlensin mi?')){ const lvl = $('assignLevelFilter').value; state.classes.filter(c => c.level == lvl).forEach(c => c.students = []); renderAssignUI(); }
 };
 
-/* ================= YAZDIRMA ================= */
+/* ================= YAZDIRMA & TASARIM GÜNCELLEMESİ ================= */
 const app = {
+  // DÜZELTME 2: Liste Yazdırma fonksiyonu güncellendi (Ortalama ve Kalınlık)
   printList: () => {
     const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
     state.classes.forEach(c => {
@@ -1086,6 +1095,7 @@ const app = {
       `;
       (c.students||[]).forEach((sNo, i) => {
         const s = state.students.find(x=>x.no===sNo) || {no:sNo, adsoyad:'?', sinif:''};
+        // Satırlarda stil düzenlemesi: # ortala, No ortala/kalın, İsim kalın, Sınıf ortala
         html += `
             <tr>
                 <td style="text-align:center">${i+1}</td>
@@ -1102,6 +1112,7 @@ const app = {
     window.print(); area.classList.add('hidden');
   },
    
+  // === YENİ: Oturma Planı Yazdırma (Kutu Tasarımı) ===
   printSeating: () => {
     const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
     state.classes.forEach(c => {
@@ -1126,6 +1137,7 @@ const app = {
               </div>
             `;
         } else {
+            // Boş Sıra
             contentHtml = `
               <div class="seat-idx">${i+1}</div>
               <div class="seat-desk-visual" style="opacity:0.3"></div>
@@ -1160,4 +1172,3 @@ function initApp(){ applyTheme('dark'); renderSettingsUI(); }
 </script>
 </body>
 </html>
-
