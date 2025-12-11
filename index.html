@@ -621,45 +621,15 @@ function normalizeClassKey(str) {
     .trim()
     .toUpperCase()
     .replace(/\s+/g, "")               // tüm boşlukları kaldır
-    .replace(/[^0-9A-ZĞÜŞİÖÇ]/g, "");  // harf/rakam dışını temizle
+    .replace(/[^0-9A-ZĞÜŞİÖÇ]/g, "");  // harf/digit dışı temizle
 }
 
-// 32 pastel ama bariz farklı renk
-const CLASS_COLOR_PALETTE = [
-  "hsl(0,   70%, 80%)",  // pastel kırmızı
-  "hsl(0,   55%, 65%)",
-  "hsl(30,  70%, 80%)",  // pastel turuncu
-  "hsl(30,  55%, 65%)",
-  "hsl(60,  70%, 80%)",  // pastel sarı
-  "hsl(60,  55%, 65%)",
-  "hsl(90,  70%, 80%)",  // pastel limon / yeşilimsi
-  "hsl(90,  55%, 65%)",
-  "hsl(120, 70%, 80%)",  // pastel yeşil
-  "hsl(120, 55%, 65%)",
-  "hsl(150, 70%, 80%)",  // pastel zümrüt
-  "hsl(150, 55%, 65%)",
-  "hsl(180, 70%, 80%)",  // pastel camgöbeği
-  "hsl(180, 55%, 65%)",
-  "hsl(210, 70%, 80%)",  // pastel mavi
-  "hsl(210, 55%, 65%)",
-  "hsl(240, 70%, 80%)",  // pastel lacivert/morumsu mavi
-  "hsl(240, 55%, 65%)",
-  "hsl(270, 70%, 80%)",  // pastel mor
-  "hsl(270, 55%, 65%)",
-  "hsl(300, 70%, 80%)",  // pastel pembe-mor
-  "hsl(300, 55%, 65%)",
-  "hsl(330, 70%, 80%)",  // pastel pembe
-  "hsl(330, 55%, 65%)",
-  "hsl(15,  70%, 80%)",  // araya ek tonlar
-  "hsl(15,  55%, 65%)",
-  "hsl(45,  70%, 80%)",
-  "hsl(45,  55%, 65%)",
-  "hsl(135, 70%, 80%)",
-  "hsl(135, 55%, 65%)",
-  "hsl(195, 70%, 80%)",
-  "hsl(195, 55%, 65%)"
-];
-
+function generateRandomPastelColor() {
+  const hue = Math.floor(Math.random() * 360);     // 0–359
+  const sat = 65 + Math.random() * 10;             // ~%65–75 pastel
+  const light = 75 + Math.random() * 10;           // ~%75–85 pastel
+  return `hsl(${hue}, ${sat}%, ${light}%)`;
+}
 const classColorCache = {};
 
 // Sınıf ismini palette 0–31 arası indexe map eden deterministik hash
@@ -677,10 +647,11 @@ function getClassColor(str) {
   const key = normalizeClassKey(str);
   if (!key) return "#cccccc";
 
+  // Daha önce atanmadıysa, şimdi rastgele pastel ver
   if (!classColorCache[key]) {
-    const idx = classColorIndexFromKey(key);
-    classColorCache[key] = CLASS_COLOR_PALETTE[idx];
+    classColorCache[key] = generateRandomPastelColor();
   }
+
   return classColorCache[key];
 }
 
@@ -1332,6 +1303,7 @@ function initApp(){
 
 </body>
 </html>
+
 
 
 
