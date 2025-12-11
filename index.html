@@ -587,7 +587,10 @@ const state = {
 /* ================= YARDIMCILAR ================= */
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).substr(2, 9);
-const normalize = s => (s||"").toString().toLowerCase().trim().replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s").replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c").replace(/\s/g,"");
+const normalize = s => (s||"").toString().toLowerCase().trim()
+  .replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s")
+  .replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c")
+  .replace(/\s/g,"");
 
 // Gelişmiş Karıştırma: Fisher-Yates Shuffle
 function shuffleArray(array) {
@@ -598,18 +601,50 @@ function shuffleArray(array) {
   return array;
 }
 
-// === YENİ: Sınıf ismine göre otomatik renk üretici (Sınırsız sınıf desteği) ===
+/* ===== SABİT SINIF RENKLERİ (8A sarı, 8B mavi vb.) ===== */
+const CLASS_COLOR_PRESET = {
+  '8A': '#facc15', // sarı
+  '8B': '#3b82f6', // mavi
+  '8C': '#22c55e', // yeşil
+  '8D': '#a855f7', // mor
+  '8E': '#f97316', // turuncu
+  '8F': '#ef4444', // kırmızı
+
+  '7A': '#fde047',
+  '7B': '#60a5fa',
+  '7C': '#34d399',
+  '7D': '#c4b5fd',
+  '7E': '#fb923c',
+  '7F': '#f97373',
+
+  '6A': '#bef264',
+  '6B': '#38bdf8',
+  '6C': '#4ade80',
+  '6D': '#c084fc',
+  '6E': '#fdba74',
+
+  '5A': '#bbf7d0',
+  '5B': '#93c5fd',
+  '5C': '#86efac',
+  '5D': '#e9d5ff',
+  '5E': '#fed7aa'
+};
+
+// Sınıf ismine göre sabit ama gerekirse otomatik üreyen renk
 function getClassColor(str) {
-    if(!str) return '#ccc';
-    let hash = 0;
-    // Basit hash fonksiyonu
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    // HSL renk uzayı kullanarak pastel ama belirgin renkler üretelim
-    const hue = Math.abs(hash % 360);
-    // Saturation %70, Lightness %40 (Koyu modda da açık modda da iyi görünmesi için orta-koyu)
-    return `hsl(${hue}, 70%, 45%)`; 
+  if (!str) return '#ccc';
+  const key = str.toString().trim().toUpperCase();
+
+  // Önce hazır harita varsa onu kullan
+  if (CLASS_COLOR_PRESET[key]) return CLASS_COLOR_PRESET[key];
+
+  // Yoksa tutarlı bir HSL rengi üret (fallback)
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = key.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return `hsl(${hue}, 70%, 45%)`;
 }
 
 /* ================= FIREBASE HANDLERS ================= */
@@ -707,29 +742,45 @@ function renderSettingsUI(){
   $('sheetTeacherTab').value = state.cfg.tabTeachers;
   if(state.cfg.theme) applyTheme(state.cfg.theme);
 }
-// DÜZELTME 1: Liste görünümünde sınıfa göre renk atanması
+
+// Öğrenci & Öğretmen listeleri (sınıf rengine göre border)
 function renderDataLists(){
   $('listStudents').innerHTML = state.students.map(s => {
-    // Sınıf rengini al
     const color = getClassColor(s.sinif);
-    // Border rengini inline style olarak ekle
     return `<div class="student-item" style="border-left-color: ${color} !important;">
       <span><b>${s.no}</b> ${s.adsoyad}</span> 
       <span class="badge">${s.sinif}</span>
     </div>`;
   }).join('');
   
-  $('listTeachers').innerHTML = state.teachers.map(t => `<div class="student-item"><span>${t.ad}</span> <small>${t.brans}</small></div>`).join('');
+  $('listTeachers').innerHTML = state.teachers
+    .map(t => `<div class="student-item"><span>${t.ad}</span> <small>${t.brans}</small></div>`)
+    .join('');
+
   $('kpiStd').textContent = state.students.length;
   $('kpiTch').textContent = state.teachers.length;
 }
 
 /* ================= SINIF & GÖZETMEN ================= */
 $('btnAddClass').onclick = () => {
-  state.classes.push({ id: uid(), name: `Sınıf ${state.classes.length+1}`, cap: 20, level: 8, teacherIds: [], rows: 5, cols: 4, students: [] });
+  state.classes.push({ 
+    id: uid(), 
+    name: `Sınıf ${state.classes.length+1}`, 
+    cap: 20, 
+    level: 8, 
+    teacherIds: [], 
+    rows: 5, 
+    cols: 4, 
+    students: [] 
+  });
   renderClassTable();
 };
-$('btnClearClasses').onclick = () => { if(confirm('Silinsin mi?')) { state.classes = []; renderClassTable(); } };
+$('btnClearClasses').onclick = () => { 
+  if(confirm('Silinsin mi?')) { 
+    state.classes = []; 
+    renderClassTable(); 
+  } 
+};
 
 function createTeacherSelector(classId, selectedIds) {
   const container = document.createElement('div');
@@ -737,7 +788,9 @@ function createTeacherSelector(classId, selectedIds) {
 
   const btn = document.createElement('div');
   btn.className = 'multi-select-btn';
-  const selectedNames = state.teachers.filter(t => selectedIds.includes(t.id)).map(t => t.ad);
+  const selectedNames = state.teachers
+    .filter(t => selectedIds.includes(t.id))
+    .map(t => t.ad);
   btn.textContent = selectedNames.length > 0 ? selectedNames.join(', ') : 'Gözetmen Seç...';
    
   const dropdown = document.createElement('div');
@@ -755,7 +808,9 @@ function createTeacherSelector(classId, selectedIds) {
       const cls = state.classes.find(c => c.id === classId);
       if(chk.checked) cls.teacherIds.push(t.id);
       else cls.teacherIds = cls.teacherIds.filter(id => id !== t.id);
-      const newNames = state.teachers.filter(teacher => cls.teacherIds.includes(teacher.id)).map(teacher => teacher.ad);
+      const newNames = state.teachers
+        .filter(teacher => cls.teacherIds.includes(teacher.id))
+        .map(teacher => teacher.ad);
       btn.textContent = newNames.length > 0 ? newNames.join(', ') : 'Gözetmen Seç...';
     };
 
@@ -782,9 +837,9 @@ document.addEventListener('click', () => {
 });
 
 function renderClassTable(){
-  const tbody = $('tbodyClasses'); tbody.innerHTML = '';
+  const tbody = $('tbodyClasses'); 
+  tbody.innerHTML = '';
   state.classes.forEach(cls => {
-    // Kapasite değişirse satır sayısını otomatik ayarla (örnek mantık)
     cls.rows = Math.ceil((parseInt(cls.cap)||1) / (parseInt(cls.cols)||1));
     const tr = document.createElement('tr');
     
@@ -799,12 +854,14 @@ function renderClassTable(){
           <option value="5" ${cls.level==5?'selected':''}>5</option>
         </select>
       </td>
-      <td class="td-teacher"></td> <td><input value="${cls.rows}" disabled style="width:60px; background:transparent; border:none"></td>
+      <td class="td-teacher"></td> 
+      <td><input value="${cls.rows}" disabled style="width:60px; background:transparent; border:none"></td>
       <td><input type="number" value="${cls.cols}" style="width:60px" onchange="updateClass('${cls.id}', 'cols', this.value)"></td>
       <td><button class="danger btn-sm" onclick="deleteClass('${cls.id}')">Sil</button></td>
     `;
     
-    tr.querySelector('.td-teacher').appendChild(createTeacherSelector(cls.id, cls.teacherIds || []));
+    tr.querySelector('.td-teacher')
+      .appendChild(createTeacherSelector(cls.id, cls.teacherIds || []));
     tbody.appendChild(tr);
   });
   $('kpiCls').textContent = state.classes.length;
@@ -812,10 +869,16 @@ function renderClassTable(){
 
 window.updateClass = (id, field, val) => {
   const c = state.classes.find(x=>x.id===id);
-  if(c) { c[field] = (field==='cap'||field==='cols'||field==='level') ? parseInt(val) : val; renderClassTable(); }
+  if(c) { 
+    c[field] = (field==='cap'||field==='cols'||field==='level') ? parseInt(val) : val; 
+    renderClassTable(); 
+  }
 };
 window.deleteClass = (id) => {
-  if(confirm('Sınıfı silmek istediğine emin misin?')) { state.classes = state.classes.filter(x => x.id !== id); renderClassTable(); }
+  if(confirm('Sınıfı silmek istediğine emin misin?')) { 
+    state.classes = state.classes.filter(x => x.id !== id); 
+    renderClassTable(); 
+  }
 };
 
 /* ================= TAKVİM ================= */
@@ -830,9 +893,11 @@ $('btnAddExam').onclick = () => {
   renderCalendar();
 };
 function renderCalendar(){
-  const list = $('calendarList'); list.innerHTML = '';
+  const list = $('calendarList'); 
+  list.innerHTML = '';
   state.calendar.forEach(c => {
-    const d = new Date(c.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const d = new Date(c.date)
+      .toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
     list.innerHTML += `
       <div class="draggable-chip" style="cursor:default">
         <b>${c.level}. Sınıf Deneme</b>: ${d}
@@ -840,31 +905,47 @@ function renderCalendar(){
       </div>`;
   });
 }
-window.delCalendar = (lvl) => { state.calendar = state.calendar.filter(c => c.level !== lvl); renderCalendar(); };
+window.delCalendar = (lvl) => { 
+  state.calendar = state.calendar.filter(c => c.level !== lvl); 
+  renderCalendar(); 
+};
 
-/* ================= ATAMA & DRAG DROP (PROFESYONEL UI) ================= */
+/* ================= ATAMA & DRAG DROP ================= */
 $('assignLevelFilter').onchange = renderAssignUI;
 $('assignSort').onchange = renderAssignUI;
 
+/* Seçilen moda göre sıralama (karıştırma yok) */
+function sortStudentsByMode(arr, mode) {
+  const copy = [...arr];
+  if (mode === 'ad') {
+    copy.sort((a,b) => (a.adsoyad || '').localeCompare(b.adsoyad || '', 'tr'));
+  } else if (mode === 'no') {
+    copy.sort((a,b) => (parseInt(a.no) || 0) - (parseInt(b.no) || 0));
+  } else if (mode === 'sinif') {
+    copy.sort((a,b) => (a.sinif || '').localeCompare(b.sinif || '', 'tr'));
+  } else if (mode === 'soyad') {
+    const getSurname = (fullName = '') => fullName.trim().split(' ').pop();
+    copy.sort((a,b) => getSurname(a.adsoyad).localeCompare(getSurname(b.adsoyad), 'tr'));
+  }
+  return copy;
+}
+
+/* Havuzda görüntülemek için öğrenci listesi */
 function getStudentsForAssign(){
   const lvl = $('assignLevelFilter').value;
-  let arr = state.students.filter(s => s.sinif.startsWith(lvl));
+  let arr = state.students
+    .filter(s => s.sinif && s.sinif.toString().startsWith(lvl));
   const sort = $('assignSort').value;
-   
-  if(sort === 'ad') arr.sort((a,b) => a.adsoyad.localeCompare(b.adsoyad, 'tr'));
-  if(sort === 'no') arr.sort((a,b) => parseInt(a.no) - parseInt(b.no));
-  if(sort === 'sinif') arr.sort((a,b) => a.sinif.localeCompare(b.sinif, 'tr'));
-   
-  if(sort === 'soyad') {
-    const getSurname = (fullName) => fullName.trim().split(' ').pop();
-    arr.sort((a,b) => getSurname(a.adsoyad).localeCompare(getSurname(b.adsoyad), 'tr'));
-  }
-   
-  // Fisher-Yates Kullanımı
-  if(sort === 'rand') {
+
+  // Havuzdaki liste sadece görsel sıralama için:
+  // - 'Tam Karışık' seçiliyse tamamen karışık
+  // - Diğerlerinde seçilen kritere göre A-Z / küçükten büyüğe sıralı
+  if (sort === 'rand') {
     arr = shuffleArray(arr);
+  } else {
+    arr = sortStudentsByMode(arr, sort);
   }
-   
+
   return arr;
 }
 
@@ -884,48 +965,56 @@ function renderAssignUI(){
   });
    
   // 2. Sınıf Gridini Doldur
-  state.classes.filter(c => c.level == lvl).forEach(c => {
-    const zone = document.createElement('div');
-    zone.className = 'class-drop-zone drop-zone'; 
-    zone.dataset.type = 'class'; 
-    zone.dataset.id = c.id;
-    
-    const current = (c.students || []).length;
-    zone.innerHTML = `
-      <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-        <span style="font-weight:bold; color:var(--accent)">${c.name}</span> 
-        <span style="font-size:0.85rem; ${current>c.cap ? 'color:var(--danger)':'color:var(--muted)'}">
-          ${current} / ${c.cap}
-        </span>
-      </div>
-      <div style="flex:1; overflow-y:auto; min-height:50px;">
+  state.classes
+    .filter(c => c.level == lvl)
+    .forEach(c => {
+      const zone = document.createElement('div');
+      zone.className = 'class-drop-zone drop-zone'; 
+      zone.dataset.type = 'class'; 
+      zone.dataset.id = c.id;
+      
+      const current = (c.students || []).length;
+      zone.innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+          <span style="font-weight:bold; color:var(--accent)">${c.name}</span> 
+          <span style="font-size:0.85rem; ${current>c.cap ? 'color:var(--danger)':'color:var(--muted)'}">
+            ${current} / ${c.cap}
+          </span>
         </div>
-    `;
-    
-    const container = zone.querySelector('div:last-child');
-    (c.students || []).forEach(sNo => {
-      const st = state.students.find(x => x.no === sNo) || {no:sNo, adsoyad:'?', sinif:'?'};
-      container.appendChild(createChip(st, c.id));
+        <div style="flex:1; overflow-y:auto; min-height:50px;"></div>
+      `;
+      
+      const container = zone.querySelector('div:last-child');
+      (c.students || []).forEach(sNo => {
+        const st = state.students.find(x => x.no === sNo) || {no:sNo, adsoyad:'?', sinif:'?'};
+        container.appendChild(createChip(st, c.id));
+      });
+      
+      classGrid.appendChild(zone);
     });
-    
-    classGrid.appendChild(zone);
-  });
    
   initDragAndDrop();
 }
 
-// === GÜNCELLENDİ: Sınıf Rengine Göre Chip Oluşturma ===
+// Sınıf rengine göre chip oluşturma
 function createChip(student, currentClassId = null) {
   const el = document.createElement('div');
-  el.className = 'draggable-chip'; el.draggable = true; el.dataset.no = student.no;
+  el.className = 'draggable-chip'; 
+  el.draggable = true; 
+  el.dataset.no = student.no;
    
-  // Otomatik Sınıf Rengi Atama
   const clr = getClassColor(student.sinif);
   el.style.borderLeftColor = clr;
 
-  el.innerHTML = `<div><div style="font-weight:600">${student.adsoyad}</div><div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div></div>`;
+  el.innerHTML = `
+    <div>
+      <div style="font-weight:600">${student.adsoyad}</div>
+      <div style="font-size:0.75rem; opacity:0.8">${student.no} - ${student.sinif}</div>
+    </div>`;
   if(currentClassId) {
-    const btn = document.createElement('button'); btn.className = 'danger btn-sm'; btn.innerHTML = '&times;';
+    const btn = document.createElement('button'); 
+    btn.className = 'danger btn-sm'; 
+    btn.innerHTML = '&times;';
     btn.onclick = (e) => { e.stopPropagation(); removeFromClass(student.no, currentClassId); };
     el.appendChild(btn);
   }
@@ -934,7 +1023,6 @@ function createChip(student, currentClassId = null) {
 
 function initDragAndDrop() {
   const chips = document.querySelectorAll('.draggable-chip');
-  // drop-zone classı hem pool hem class divlerinde var
   const zones = document.querySelectorAll('.drop-zone');
    
   chips.forEach(chip => {
@@ -943,7 +1031,10 @@ function initDragAndDrop() {
       e.dataTransfer.effectAllowed = 'move';
       chip.style.opacity = '0.5';
     });
-    chip.addEventListener('dragend', () => { chip.style.opacity = '1'; zones.forEach(z => z.classList.remove('drag-over')); });
+    chip.addEventListener('dragend', () => { 
+      chip.style.opacity = '1'; 
+      zones.forEach(z => z.classList.remove('drag-over')); 
+    });
     
     // Swap için chip üzerine drop
     chip.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
@@ -972,7 +1063,9 @@ function initDragAndDrop() {
       
       if(sourceClassId === targetClassId && targetType === 'class') return;
       
-      if(targetType === 'pool') { if(sourceClassId) removeFromClass(studentNo, sourceClassId); }
+      if(targetType === 'pool') { 
+        if(sourceClassId) removeFromClass(studentNo, sourceClassId); 
+      }
       else if(targetType === 'class') {
         const targetClass = state.classes.find(c => c.id === targetClassId);
         if(!targetClass.students) targetClass.students = [];
@@ -1007,48 +1100,110 @@ function removeFromClass(no, classId){
   if(c) { c.students = c.students.filter(x => x !== no); renderAssignUI(); }
 }
 
+/* OTOMATİK DAĞIT – sınıf içi sıralı, karışım sadece rand seçeneğinde */
 $('btnAutoDistribute').onclick = () => {
   const lvl = $('assignLevelFilter').value;
-  const students = getStudentsForAssign(); // Zaten shuffle edildi eğer 'rand' seçiliyse
+  const sortMode = $('assignSort').value;
   const targets = state.classes.filter(c => c.level == lvl);
-  targets.forEach(c => c.students = []);
-   
-  let stIdx = 0;
-  // Basit dağıtım yerine sırayla dağıtım (homojenlik için)
-  let loop = true;
-  while(loop && stIdx < students.length) {
-      loop = false;
-      for(let c of targets) {
-          if(!c.students) c.students = [];
-          if(c.students.length < c.cap && stIdx < students.length) {
-              c.students.push(students[stIdx].no);
-              stIdx++;
-              loop = true;
-          }
-      }
+
+  if (!targets.length) {
+    alert('Bu düzey için tanımlı sınıf yok.');
+    return;
   }
-   
+
+  // Mevcut atamaları temizle
+  targets.forEach(c => c.students = []);
+
+  const allLevelStudents = state.students
+    .filter(s => s.sinif && s.sinif.toString().startsWith(lvl));
+
+  if (sortMode === 'rand') {
+    // Tam karışık: tüm seviye karışsın
+    const shuffled = shuffleArray([...allLevelStudents]);
+    let stIdx = 0;
+    let loop = true;
+    while (loop && stIdx < shuffled.length) {
+      loop = false;
+      for (let c of targets) {
+        if (!c.students) c.students = [];
+        if (c.students.length < c.cap && stIdx < shuffled.length) {
+          c.students.push(shuffled[stIdx].no);
+          stIdx++;
+          loop = true;
+        }
+      }
+    }
+  } else {
+    // Diğer tüm sıralamalarda: sınıf içi sıralı dağıt
+    const assignedNos = new Set();
+
+    // 1) Her salon kendi sınıfına ait öğrencileri alsın
+    targets.forEach(cls => {
+      const classStudents = allLevelStudents
+        .filter(s => normalize(s.sinif) === normalize(cls.name));
+      const sortedClassStudents = sortStudentsByMode(classStudents, sortMode);
+      const picked = sortedClassStudents.slice(0, cls.cap);
+      cls.students = picked.map(s => s.no);
+      picked.forEach(s => assignedNos.add(s.no));
+    });
+
+    // 2) Kapasite kalmışsa, atanmamış öğrencileri yine sıralı şekilde dağıt
+    const remaining = sortStudentsByMode(
+      allLevelStudents.filter(s => !assignedNos.has(s.no)),
+      sortMode
+    );
+
+    let ri = 0;
+    let loop = true;
+    while (loop && ri < remaining.length) {
+      loop = false;
+      for (let cls of targets) {
+        if (!cls.students) cls.students = [];
+        if (cls.students.length < cls.cap && ri < remaining.length) {
+          cls.students.push(remaining[ri].no);
+          assignedNos.add(remaining[ri].no);
+          ri++;
+          loop = true;
+        }
+      }
+    }
+  }
+
   renderAssignUI();
 };
+
 $('btnClearAssign').onclick = () => {
-  if(confirm('Temizlensin mi?')){ const lvl = $('assignLevelFilter').value; state.classes.filter(c => c.level == lvl).forEach(c => c.students = []); renderAssignUI(); }
+  if(confirm('Temizlensin mi?')){
+    const lvl = $('assignLevelFilter').value; 
+    state.classes
+      .filter(c => c.level == lvl)
+      .forEach(c => c.students = []);
+    renderAssignUI();
+  }
 };
 
-/* ================= YAZDIRMA & TASARIM GÜNCELLEMESİ ================= */
+/* ================= YAZDIRMA ================= */
 const app = {
-  // DÜZELTME 2: Liste Yazdırma fonksiyonu güncellendi (Ortalama ve Kalınlık)
   printList: () => {
-    const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
+    const area = $('printArea'); 
+    area.innerHTML = ''; 
+    area.classList.remove('hidden');
     state.classes.forEach(c => {
-      const page = document.createElement('div'); page.className = 'print-page';
-      const tch = c.teacherIds.map(id => state.teachers.find(t=>t.id===id)?.ad || "").join(', ');
+      const page = document.createElement('div'); 
+      page.className = 'print-page';
+      const tch = c.teacherIds
+        .map(id => state.teachers.find(t=>t.id===id)?.ad || "")
+        .join(', ');
       const cal = state.calendar.find(x=>x.level===c.level)?.date || "";
       const dFormatted = cal ? new Date(cal).toLocaleDateString('tr-TR') : "-";
       
       let html = `
-        <h2 style="text-align:center; margin-bottom:10px; color:#000;">${c.name} - Sınav İmza Listesi</h2>
+        <h2 style="text-align:center; margin-bottom:10px; color:#000;">
+          ${c.name} - Sınav İmza Listesi
+        </h2>
         <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-family:Arial; color:#000;">
-           <span>Tarih: ${dFormatted}</span> <span>Gözetmen: ${tch}</span>
+           <span>Tarih: ${dFormatted}</span> 
+           <span>Gözetmen: ${tch}</span>
         </div>
         <table class="print-list-table">
           <thead>
@@ -1064,54 +1219,61 @@ const app = {
       `;
       (c.students||[]).forEach((sNo, i) => {
         const s = state.students.find(x=>x.no===sNo) || {no:sNo, adsoyad:'?', sinif:''};
-        // Satırlarda stil düzenlemesi: # ortala, No ortala/kalın, İsim kalın, Sınıf ortala
         html += `
-            <tr>
-                <td style="text-align:center">${i+1}</td>
-                <td style="text-align:center; font-weight:bold">${s.no}</td>
-                <td style="font-weight:bold">${s.adsoyad}</td>
-                <td style="text-align:center">${s.sinif}</td>
-                <td></td>
-            </tr>`;
+          <tr>
+            <td style="text-align:center">${i+1}</td>
+            <td style="text-align:center; font-weight:bold">${s.no}</td>
+            <td style="font-weight:bold">${s.adsoyad}</td>
+            <td style="text-align:center">${s.sinif}</td>
+            <td></td>
+          </tr>`;
       });
       html += `</tbody></table>`;
       page.innerHTML = html;
       area.appendChild(page);
     });
-    window.print(); area.classList.add('hidden');
+    window.print(); 
+    area.classList.add('hidden');
   },
    
-  // === YENİ: Oturma Planı Yazdırma (Kutu Tasarımı) ===
   printSeating: () => {
-    const area = $('printArea'); area.innerHTML = ''; area.classList.remove('hidden');
+    const area = $('printArea'); 
+    area.innerHTML = ''; 
+    area.classList.remove('hidden');
     state.classes.forEach(c => {
-      const page = document.createElement('div'); page.className = 'print-page';
-      const tch = c.teacherIds.map(id => state.teachers.find(t=>t.id===id)?.ad || "").join(', ');
+      const page = document.createElement('div'); 
+      page.className = 'print-page';
+      const tch = c.teacherIds
+        .map(id => state.teachers.find(t=>t.id===id)?.ad || "")
+        .join(', ');
       const cal = state.calendar.find(x=>x.level===c.level)?.date || "";
       const dFormatted = cal ? new Date(cal).toLocaleDateString('tr-TR') : "-";
 
       let gridHtml = `<div class="seat-grid" style="--cols: ${c.cols}">`;
       for(let i=0; i<c.cap; i++){
         const sNo = (c.students||[])[i];
-        const student = sNo ? (state.students.find(x=>x.no===sNo) || {no:sNo, adsoyad:sNo}) : null;
+        const student = sNo 
+          ? (state.students.find(x=>x.no===sNo) || {no:sNo, adsoyad:sNo}) 
+          : null;
         
         let contentHtml = '';
         if(student) {
-            contentHtml = `
-              <div class="seat-idx">${i+1}</div>
-              <div class="seat-desk-visual"></div>
-              <div class="seat-info">
-                  <div class="seat-name">${student.adsoyad}</div>
-                  <div class="seat-no">${student.no}</div>
-              </div>
-            `;
+          contentHtml = `
+            <div class="seat-idx">${i+1}</div>
+            <div class="seat-desk-visual"></div>
+            <div class="seat-info">
+              <div class="seat-name">${student.adsoyad}</div>
+              <div class="seat-no">${student.no}</div>
+            </div>
+          `;
         } else {
-            // Boş Sıra
-            contentHtml = `
-              <div class="seat-idx">${i+1}</div>
-              <div class="seat-desk-visual" style="opacity:0.3"></div>
-              <div class="seat-info"><div class="seat-name" style="color:#aaa; font-weight:normal;">BOŞ</div></div>
-            `;
+          contentHtml = `
+            <div class="seat-idx">${i+1}</div>
+            <div class="seat-desk-visual" style="opacity:0.3"></div>
+            <div class="seat-info">
+              <div class="seat-name" style="color:#aaa; font-weight:normal;">BOŞ</div>
+            </div>
+          `;
         }
 
         gridHtml += `<div class="seat-box">${contentHtml}</div>`;
@@ -1119,12 +1281,17 @@ const app = {
       gridHtml += `</div>`;
       
       page.innerHTML = `
-        <h2 style="text-align:center; font-family:Arial; color:#000;">${c.name} Oturma Planı</h2>
-        <div style="text-align:center; margin-bottom:20px; font-family:Arial; font-weight:bold; color:#000;">${dFormatted} - ${tch}</div>
+        <h2 style="text-align:center; font-family:Arial; color:#000;">
+          ${c.name} Oturma Planı
+        </h2>
+        <div style="text-align:center; margin-bottom:20px; font-family:Arial; font-weight:bold; color:#000;">
+          ${dFormatted} - ${tch}
+        </div>
         ${gridHtml}`;
       area.appendChild(page);
     });
-    window.print(); area.classList.add('hidden');
+    window.print(); 
+    area.classList.add('hidden');
   }
 };
 
@@ -1137,7 +1304,12 @@ function applyTheme(thm){
   if(thm === 'light') document.body.classList.add('theme-light');
   else document.body.classList.remove('theme-light');
 }
-function initApp(){ applyTheme('dark'); renderSettingsUI(); }
+function initApp(){ 
+  applyTheme('dark'); 
+  renderSettingsUI(); 
+}
 </script>
+
 </body>
 </html>
+
