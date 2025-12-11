@@ -587,10 +587,11 @@ const state = {
 /* ================= YARDIMCILAR ================= */
 const $ = id => document.getElementById(id);
 const uid = () => Math.random().toString(36).substr(2, 9);
-const normalize = s => (s||"").toString().toLowerCase().trim()
+const normalize = s => (s || "").toString().toLowerCase().trim()
   .replace(/ğ/g,"g").replace(/ü/g,"u").replace(/ş/g,"s")
   .replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c")
-  .replace(/\s/g,"");
+  .replace(/[^a-z0-9]/g,"");
+
 
 // Gelişmiş Karıştırma: Fisher-Yates Shuffle
 
@@ -709,31 +710,61 @@ async function fetchSheetData() {
   const sid = $('sheetId').value;
   const sTab = $('sheetStudentTab').value;
   const tTab = $('sheetTeacherTab').value;
-  if(!sid) return alert('Spreadsheet ID giriniz.');
+  if (!sid) return alert('Spreadsheet ID giriniz.');
 
   try {
+    // === ÖĞRENCİLER ===
     const urlS = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sTab)}`;
     const resS = await fetch(urlS);
     const txtS = await resS.text();
     const jsonS = JSON.parse(txtS.substr(47).slice(0, -2));
+
     const headersS = jsonS.table.cols.map(c => normalize(c.label));
-    let idxNo=0, idxAd=1, idxSin=2;
-    if(headersS.includes('no')) idxNo = headersS.indexOf('no');
-    if(headersS.includes('adsoyad')) idxAd = headersS.indexOf('adsoyad');
-    if(headersS.includes('sinif')) idxSin = headersS.indexOf('sinif');
 
-    state.students = jsonS.table.rows.map(r => ({
-      no: String(r.c[idxNo]?.v || "").trim(),
-      adsoyad: String(r.c[idxAd]?.v || "").trim(),
-      sinif: String(r.c[idxSin]?.v || "").trim()
-    })).filter(s => s.no && s.adsoyad);
+    // Okul numarası: "Okul Numarası" veya "No" sütunundan
+    let idxNo = headersS.indexOf('okulnumarasi');
+    if (idxNo === -1) idxNo = headersS.indexOf('no');
+    if (idxNo === -1) idxNo = 0; // hiçbirini bulamazsa ilk sütuna düş
 
+    // Sınıf sütunu
+    let idxSinif = headersS.indexOf('sinif');
+    if (idxSinif === -1) idxSinif = 3; // 2025-2026 sayfasında sınıf sütunu varsayılanı
+
+    // Ad / Soyad sütunları
+    const idxAdSoyad = headersS.indexOf('adsoyad');
+    const idxIsim = headersS.indexOf('isim');
+    const idxSoyisim = headersS.indexOf('soyisim');
+
+    state.students = jsonS.table.rows.map(r => {
+      const cells = r.c || [];
+      const no = String(cells[idxNo]?.v || '').trim();
+
+      let adsoyad = '';
+      if (idxAdSoyad !== -1) {
+        // Eski tip tek sütun "AdSoyad" varsa onu kullan
+        adsoyad = String(cells[idxAdSoyad]?.v || '').trim();
+      } else {
+        // Yeni yapıda: "İsim" + "Soyisim*"
+        const ad = idxIsim !== -1 ? String(cells[idxIsim]?.v || '').trim() : '';
+        const soyad = idxSoyisim !== -1 ? String(cells[idxSoyisim]?.v || '').trim() : '';
+        adsoyad = (ad + ' ' + soyad).trim();
+      }
+
+      const sinif = String(cells[idxSinif]?.v || '').trim();
+
+      // Uygulama içi var olan yapı:
+      return { no, adsoyad, sinif };
+    }).filter(s => s.no && s.adsoyad);
+
+    // === ÖĞRETMENLER (MEVCUT YAPI AYNEN DEVAM) ===
     const urlT = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tTab)}`;
     const resT = await fetch(urlT);
     const txtT = await resT.text();
     const jsonT = JSON.parse(txtT.substr(47).slice(0, -2));
     state.teachers = jsonT.table.rows.map(r => ({
-      id: String(r.c[0]?.v||""), ad: String(r.c[1]?.v||""), brans: String(r.c[2]?.v||"")
+      id: String(r.c[0]?.v || ''),
+      ad: String(r.c[1]?.v || ''),
+      brans: String(r.c[2]?.v || '')
     })).filter(t => t.id && t.ad);
 
     state.cfg.sheetId = sid;
@@ -741,9 +772,12 @@ async function fetchSheetData() {
     state.cfg.tabTeachers = tTab;
     renderDataLists();
     alert(`Veriler çekildi: ${state.students.length} öğrenci, ${state.teachers.length} öğretmen.`);
-  } catch(e) { console.error(e); alert('Hata: Google Sheet okunamadı.'); }
+  } catch (e) {
+    console.error(e);
+    alert('Hata: Google Sheet okunamadı.');
+  }
 }
-$('btnFetchSheets').onclick = fetchSheetData;
+
 
 function renderSettingsUI(){
   $('sheetId').value = state.cfg.sheetId;
@@ -1303,6 +1337,7 @@ function initApp(){
 
 </body>
 </html>
+
 
 
 
