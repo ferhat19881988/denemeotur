@@ -162,7 +162,6 @@
   .student-item {
     padding: 10px; margin-bottom:6px;
     background: var(--card); border:1px solid var(--border);
-    /* Sol border dinamik atanacak ama varsayılanı burada */
     border-left-width: 5px;
     border-radius: 8px; display:flex; justify-content:space-between; align-items:center;
     font-size: 0.9rem;
@@ -213,7 +212,6 @@
     padding: 8px 12px; margin-bottom: 8px;
     background: var(--card); 
     border: 1px solid var(--border);
-    /* Border-left JS ile dinamik renklendirilecek */
     border-left-width: 5px; 
     border-radius: 8px; cursor: grab;
     display:flex; justify-content:space-between; align-items:center;
@@ -242,14 +240,12 @@
     .no-print, .tabs, .app-header, .toolbar, button, .firebase-btn { display:none !important; }
     .print-page { page-break-after: always; margin: 10px; }
     
-    /* Liste Yazdırma */
     .print-list-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; color: #000; }
     .print-list-table th, .print-list-table td { 
       border: 1px solid #000; padding: 6px; color: #000; font-size: 12px;
     }
     .print-list-table th { text-align: center; background: #eee; -webkit-print-color-adjust: exact; }
     
-    /* YENİ OTURMA PLANI TASARIMI (KUTU DÜZENİ) */
     .seat-grid {
       display:grid;
       grid-template-columns: repeat(var(--cols), 1fr); 
@@ -261,14 +257,13 @@
       border: 2px solid #000;
       border-radius: 8px;
       padding: 5px;
-      height: 110px; /* Yükseklik */
+      height: 110px;
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
       background: #fff;
     }
-    /* Sıra Numarası (Sol Üst) */
     .seat-idx {
       position: absolute;
       top: 5px; left: 5px;
@@ -279,18 +274,16 @@
       font-size: 10px; font-weight: bold;
       -webkit-print-color-adjust: exact;
     }
-    /* Masa Temsili (Görsel) */
     .seat-desk-visual {
       width: 60%;
       height: 35px;
       border: 2px solid #444;
       background: #eee;
-      margin-top: 25px; /* Sıra nosundan uzaklaş */
+      margin-top: 25px;
       margin-bottom: 5px;
       border-radius: 4px;
       -webkit-print-color-adjust: exact;
     }
-    /* Öğrenci Bilgileri */
     .seat-info {
       text-align: center;
       width: 100%;
@@ -302,7 +295,7 @@
       font-size: 11px;
       color: #000;
       margin-bottom: 2px;
-      white-space: normal; /* İsim sığsın diye alt satıra geçsin */
+      white-space: normal;
       overflow: hidden;
       max-height: 28px;
     }
@@ -352,29 +345,38 @@
   <section id="ayarl">
     <div class="card">
       <h2>
-        <span>Veri Kaynağı (Google Sheets)</span>
+        <span>Veri Kaynakları (Google Sheets)</span>
         <div class="inline" style="gap:8px">
           <button id="fbSaveSettings" class="firebase-btn btn-sm">Ayarları Kaydet (Bulut)</button>
           <button id="fbLoadSettings" class="firebase-btn btn-sm">Ayarları Yükle (Bulut)</button>
         </div>
       </h2>
+      
+      <div class="row" style="margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border);">
+        <div class="col">
+          <label style="color:var(--accent); font-weight:bold;">1. Öğrenci Tablosu ID</label>
+          <input id="sheetIdStudent" placeholder="Öğrenci Google Sheet ID" />
+        </div>
+        <div class="col">
+          <label>Öğrenci Sayfa Adı (Tab)</label>
+          <input id="sheetStudentTab" value="2025-2026" />
+        </div>
+      </div>
+
       <div class="row">
         <div class="col">
-          <label>Spreadsheet ID</label>
-          <input id="sheetId" placeholder="Google Sheet ID" />
+          <label style="color:var(--warn); font-weight:bold;">2. Öğretmen Tablosu ID</label>
+          <input id="sheetIdTeacher" placeholder="Öğretmen Google Sheet ID" />
         </div>
         <div class="col">
-          <label>Öğrenci Sayfa Adı</label>
-          <input id="sheetStudentTab" value="Deneme" />
-        </div>
-        <div class="col">
-          <label>Öğretmen Sayfa Adı</label>
+          <label>Öğretmen Sayfa Adı (Tab)</label>
           <input id="sheetTeacherTab" value="Ogretmenler" />
         </div>
       </div>
+
       <div class="toolbar" style="margin-top:16px">
-        <button id="btnFetchSheets" class="primary">E-Tablodan Verileri Çek</button>
-        <span style="font-size:0.8rem; color:var(--muted)">Tablo "Bağlantıya sahip herkes görüntüleyebilir" olmalıdır.</span>
+        <button id="btnFetchSheets" class="primary">E-Tablolardan Verileri Çek</button>
+        <span style="font-size:0.8rem; color:var(--muted)">Tablolar "Bağlantıya sahip herkes görüntüleyebilir" olmalıdır.</span>
       </div>
     </div>
 
@@ -576,8 +578,9 @@
 /* ================= GLOBAL STATE ================= */
 const state = {
   cfg: { 
-    sheetId: "1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw", 
-    tabStudents: "Deneme", 
+    sheetIdStudent: "16BD_BrNLYBaXviCzB8yDKBGS2Vdj5DHi", // YENİ ÖĞRENCİ TABLOSU
+    sheetIdTeacher: "1OeDI5rQvWXP6s5OhgRFrh1dThnBMmA9mrCjgYuk1Qtw", // ESKİ ÖĞRETMEN TABLOSU
+    tabStudents: "2025-2026", 
     tabTeachers: "Ogretmenler", 
     theme: "dark" 
   },
@@ -592,10 +595,6 @@ const normalize = s => (s||"").toString().toLowerCase().trim()
   .replace(/ı/g,"i").replace(/ö/g,"o").replace(/ç/g,"c")
   .replace(/\s/g,"");
 
-// Gelişmiş Karıştırma: Fisher-Yates Shuffle
-
-// Gelişmiş Karıştırma: Fisher-Yates Shuffle
-// Gelişmiş Karıştırma: Fisher-Yates Shuffle
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -604,54 +603,31 @@ function shuffleArray(array) {
   return array;
 }
 
-/* ================== SINIF RENK SİSTEMİ V2 ==================
-   - Pastel, ama birbirinden bariz farklı 32 renk.
-   - Her sınıf ismi normalize edilip hash'leniyor.
-   - Hash sonucu 0–31 arası bir index veriyor; paletteki o renk kullanılıyor.
-   - Aynı sınıf ismi her zaman aynı rengi alır.
-   - Benzer sınıf isimleri (8A, 8B, 8C...) aynı sıradaki renkleri
-     almak zorunda değil; hash sayesinde palette dağılmış oluyorlar.
-*/
-
-// "8 A", "8A ", "8-a" → "8A" gibi tek anahtar haline getir
+/* ================== SINIF RENK SİSTEMİ ================== */
 function normalizeClassKey(str) {
   if (!str) return "";
   return str
     .toString()
     .trim()
     .toUpperCase()
-    .replace(/\s+/g, "")               // tüm boşlukları kaldır
-    .replace(/[^0-9A-ZĞÜŞİÖÇ]/g, "");  // harf/digit dışı temizle
+    .replace(/\s+/g, "")
+    .replace(/[^0-9A-ZĞÜŞİÖÇ]/g, "");
 }
 
 function generateRandomPastelColor() {
-  const hue = Math.floor(Math.random() * 360);     // 0–359
-  const sat = 65 + Math.random() * 10;             // ~%65–75 pastel
-  const light = 75 + Math.random() * 10;           // ~%75–85 pastel
+  const hue = Math.floor(Math.random() * 360);
+  const sat = 65 + Math.random() * 10;
+  const light = 75 + Math.random() * 10;
   return `hsl(${hue}, ${sat}%, ${light}%)`;
 }
 const classColorCache = {};
 
-// Sınıf ismini palette 0–31 arası indexe map eden deterministik hash
-function classColorIndexFromKey(key) {
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) | 0; // 32-bit int
-  }
-  if (hash < 0) hash = -hash;
-  return hash % CLASS_COLOR_PALETTE.length;
-}
-
-// Dışarıdan kullanılan fonksiyon
 function getClassColor(str) {
   const key = normalizeClassKey(str);
   if (!key) return "#cccccc";
-
-  // Daha önce atanmadıysa, şimdi rastgele pastel ver
   if (!classColorCache[key]) {
     classColorCache[key] = generateRandomPastelColor();
   }
-
   return classColorCache[key];
 }
 
@@ -704,55 +680,81 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-/* ================= GOOGLE SHEETS ================= */
+/* ================= GOOGLE SHEETS (GÜNCELLENMİŞ MANTIK) ================= */
 async function fetchSheetData() {
-  const sid = $('sheetId').value;
+  const sidStd = $('sheetIdStudent').value;
+  const sidTch = $('sheetIdTeacher').value;
   const sTab = $('sheetStudentTab').value;
   const tTab = $('sheetTeacherTab').value;
-  if(!sid) return alert('Spreadsheet ID giriniz.');
+
+  if(!sidStd || !sidTch) return alert('Lütfen her iki Tablo ID\'sini de giriniz.');
 
   try {
-    const urlS = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sTab)}`;
+    // 1. ÖĞRENCİLERİ ÇEK (YENİ TABLO YAPISI)
+    const urlS = `https://docs.google.com/spreadsheets/d/${sidStd}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sTab)}`;
     const resS = await fetch(urlS);
     const txtS = await resS.text();
     const jsonS = JSON.parse(txtS.substr(47).slice(0, -2));
+    
+    // Yeni Tablo Başlıkları: İsim, Soyisim, Cinsiyet, Sınıf, Okul Numarası, vb.
     const headersS = jsonS.table.cols.map(c => normalize(c.label));
-    let idxNo=0, idxAd=1, idxSin=2;
-    if(headersS.includes('no')) idxNo = headersS.indexOf('no');
-    if(headersS.includes('adsoyad')) idxAd = headersS.indexOf('adsoyad');
-    if(headersS.includes('sinif')) idxSin = headersS.indexOf('sinif');
+    
+    // Sütun İndekslerini Bul
+    let idxIsim = headersS.findIndex(h => h.includes('isim') && !h.includes('soy')); // "isim"
+    let idxSoyisim = headersS.findIndex(h => h.includes('soyisim')); // "soyisim"
+    let idxNo = headersS.findIndex(h => h.includes('no') || h.includes('numara')); // "okul numarasi"
+    let idxSinif = headersS.findIndex(h => h.includes('sinif')); // "sinif"
 
-    state.students = jsonS.table.rows.map(r => ({
-      no: String(r.c[idxNo]?.v || "").trim(),
-      adsoyad: String(r.c[idxAd]?.v || "").trim(),
-      sinif: String(r.c[idxSin]?.v || "").trim()
-    })).filter(s => s.no && s.adsoyad);
+    // Varsayılanlar (bulamazsa) - Yeni tabloya göre: A(0), B(1), D(3), E(4)
+    if(idxIsim < 0) idxIsim = 0; 
+    if(idxSoyisim < 0) idxSoyisim = 1;
+    if(idxSinif < 0) idxSinif = 3;
+    if(idxNo < 0) idxNo = 4;
 
-    const urlT = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tTab)}`;
+    state.students = jsonS.table.rows.map(r => {
+      const isim = String(r.c[idxIsim]?.v || "").trim();
+      const soyisim = String(r.c[idxSoyisim]?.v || "").trim();
+      return {
+        no: String(r.c[idxNo]?.v || "").trim(),
+        adsoyad: `${isim} ${soyisim}`.trim(), // İsim ve Soyisimi birleştir
+        sinif: String(r.c[idxSinif]?.v || "").trim()
+      };
+    }).filter(s => s.no && s.adsoyad);
+
+    // 2. ÖĞRETMENLERİ ÇEK (ESKİ TABLO YAPISI - DEĞİŞMEDİ)
+    const urlT = `https://docs.google.com/spreadsheets/d/${sidTch}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tTab)}`;
     const resT = await fetch(urlT);
     const txtT = await resT.text();
     const jsonT = JSON.parse(txtT.substr(47).slice(0, -2));
+    
     state.teachers = jsonT.table.rows.map(r => ({
-      id: String(r.c[0]?.v||""), ad: String(r.c[1]?.v||""), brans: String(r.c[2]?.v||"")
+      id: String(r.c[0]?.v||""), 
+      ad: String(r.c[1]?.v||""), 
+      brans: String(r.c[2]?.v||"")
     })).filter(t => t.id && t.ad);
 
-    state.cfg.sheetId = sid;
+    // Ayarları güncelle
+    state.cfg.sheetIdStudent = sidStd;
+    state.cfg.sheetIdTeacher = sidTch;
     state.cfg.tabStudents = sTab;
     state.cfg.tabTeachers = tTab;
+
     renderDataLists();
-    alert(`Veriler çekildi: ${state.students.length} öğrenci, ${state.teachers.length} öğretmen.`);
-  } catch(e) { console.error(e); alert('Hata: Google Sheet okunamadı.'); }
+    alert(`Veriler çekildi:\n${state.students.length} öğrenci (Yeni Tablo)\n${state.teachers.length} öğretmen (Eski Tablo)`);
+    
+  } catch(e) { console.error(e); alert('Hata: Google Sheet okunamadı. ID\'leri ve Sayfa adlarını kontrol edin.'); }
 }
 $('btnFetchSheets').onclick = fetchSheetData;
 
 function renderSettingsUI(){
-  $('sheetId').value = state.cfg.sheetId;
+  $('sheetIdStudent').value = state.cfg.sheetIdStudent || "";
+  $('sheetIdTeacher').value = state.cfg.sheetIdTeacher || "";
   $('sheetStudentTab').value = state.cfg.tabStudents;
   $('sheetTeacherTab').value = state.cfg.tabTeachers;
   if(state.cfg.theme) applyTheme(state.cfg.theme);
 }
 
-// Öğrenci & Öğretmen listeleri (sınıf rengine göre border)
+// Öğrenci & Öğretmen listeleri
 function renderDataLists(){
   $('listStudents').innerHTML = state.students.map(s => {
     const color = getClassColor(s.sinif);
@@ -923,7 +925,6 @@ window.delCalendar = (lvl) => {
 $('assignLevelFilter').onchange = renderAssignUI;
 $('assignSort').onchange = renderAssignUI;
 
-/* Seçilen moda göre sıralama (karıştırma yok) */
 function sortStudentsByMode(arr, mode) {
   const copy = [...arr];
   if (mode === 'ad') {
@@ -939,22 +940,16 @@ function sortStudentsByMode(arr, mode) {
   return copy;
 }
 
-/* Havuzda görüntülemek için öğrenci listesi */
 function getStudentsForAssign(){
   const lvl = $('assignLevelFilter').value;
   let arr = state.students
     .filter(s => s.sinif && s.sinif.toString().startsWith(lvl));
   const sort = $('assignSort').value;
-
-  // Havuzdaki liste sadece görsel sıralama için:
-  // - 'Tam Karışık' seçiliyse tamamen karışık
-  // - Diğerlerinde seçilen kritere göre A-Z / küçükten büyüğe sıralı
   if (sort === 'rand') {
     arr = shuffleArray(arr);
   } else {
     arr = sortStudentsByMode(arr, sort);
   }
-
   return arr;
 }
 
@@ -965,7 +960,6 @@ function renderAssignUI(){
   const lvl = $('assignLevelFilter').value;
   const students = getStudentsForAssign();
    
-  // 1. Havuzu Doldur
   const assignedSet = new Set();
   state.classes.forEach(c => { if(c.students) c.students.forEach(s => assignedSet.add(s)); });
    
@@ -973,7 +967,6 @@ function renderAssignUI(){
     if(!assignedSet.has(s.no)) poolList.appendChild(createChip(s));
   });
    
-  // 2. Sınıf Gridini Doldur
   state.classes
     .filter(c => c.level == lvl)
     .forEach(c => {
@@ -1005,7 +998,6 @@ function renderAssignUI(){
   initDragAndDrop();
 }
 
-// Sınıf rengine göre chip oluşturma
 function createChip(student, currentClassId = null) {
   const el = document.createElement('div');
   el.className = 'draggable-chip'; 
@@ -1044,8 +1036,6 @@ function initDragAndDrop() {
       chip.style.opacity = '1'; 
       zones.forEach(z => z.classList.remove('drag-over')); 
     });
-    
-    // Swap için chip üzerine drop
     chip.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
     chip.addEventListener('drop', e => {
       e.preventDefault(); e.stopPropagation();
@@ -1109,12 +1099,6 @@ function removeFromClass(no, classId){
   if(c) { c.students = c.students.filter(x => x !== no); renderAssignUI(); }
 }
 
-/* OTOMATİK DAĞIT
-   - Her zaman TEK havuz (seviye filtresine göre).
-   - Sıralama: seçilen moda göre global liste.
-   - Dağıtım: önce 1. sınıf kapasitesi dolana kadar, sonra 2, sonra 3...
-   - Sadece 'Tam Karışık' modunda bu global liste karıştırılıyor.
-*/
 $('btnAutoDistribute').onclick = () => {
   const lvl = $('assignLevelFilter').value;
   const sortMode = $('assignSort').value;
@@ -1124,11 +1108,8 @@ $('btnAutoDistribute').onclick = () => {
     alert('Bu düzey için tanımlı sınıf yok.');
     return;
   }
-
-  // Mevcut atamaları temizle
   targets.forEach(c => { c.students = []; });
 
-  // Bu düzeydeki TÜM öğrenciler (sınıf etiketi ne olursa olsun)
   const allLevelStudents = state.students
     .filter(s => s.sinif && s.sinif.toString().startsWith(lvl));
 
@@ -1137,7 +1118,6 @@ $('btnAutoDistribute').onclick = () => {
     return;
   }
 
-  // Global liste: mod = rand ise karışık, değilse seçilen ölçüte göre sıralı
   let ordered;
   if (sortMode === 'rand') {
     ordered = shuffleArray([...allLevelStudents]);
@@ -1145,20 +1125,16 @@ $('btnAutoDistribute').onclick = () => {
     ordered = sortStudentsByMode(allLevelStudents, sortMode);
   }
 
-  // Sırasıyla: önce 1. sınıf dolana kadar, sonra 2, sonra 3...
   let classIndex = 0;
   for (const stu of ordered) {
-    // dolu sınıfları atla
     while (classIndex < targets.length &&
            (targets[classIndex].students || []).length >= targets[classIndex].cap) {
       classIndex++;
     }
-    if (classIndex >= targets.length) break; // tüm sınıflar dolu
-
+    if (classIndex >= targets.length) break; 
     if (!targets[classIndex].students) targets[classIndex].students = [];
     targets[classIndex].students.push(stu.no);
   }
-
   renderAssignUI();
 };
 
@@ -1299,7 +1275,5 @@ function initApp(){
   renderSettingsUI(); 
 }
 </script>
-
-
 </body>
 </html>
