@@ -595,6 +595,7 @@ const normalize = s => (s||"").toString().toLowerCase().trim()
 // Gelişmiş Karıştırma: Fisher-Yates Shuffle
 
 // Gelişmiş Karıştırma: Fisher-Yates Shuffle
+// Gelişmiş Karıştırma: Fisher-Yates Shuffle
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -603,13 +604,13 @@ function shuffleArray(array) {
   return array;
 }
 
-/* ================== SINIF RENK SİSTEMİ (OTOMATİK) ==================
-   Mantık:
-   - Sınıf isimlerini normalize ediyoruz (boşluk/harf farkları kalkıyor).
-   - Tüm öğrenciler ve sınıf tanımlarındaki benzersiz sınıf adlarını topluyoruz.
-   - Alfabetik sıralayıp, geniş bir renk paletine sırayla dağıtıyoruz.
-   - Aynı sınıf adı her yerde aynı rengi alıyor.
-   - Yeni sınıf eklenirse, cache yeniden kuruluyor ve renkler yine deterministik.
+/* ================== SINIF RENK SİSTEMİ V2 ==================
+   - Pastel, ama birbirinden bariz farklı 32 renk.
+   - Her sınıf ismi normalize edilip hash'leniyor.
+   - Hash sonucu 0–31 arası bir index veriyor; paletteki o renk kullanılıyor.
+   - Aynı sınıf ismi her zaman aynı rengi alır.
+   - Benzer sınıf isimleri (8A, 8B, 8C...) aynı sıradaki renkleri
+     almak zorunda değil; hash sayesinde palette dağılmış oluyorlar.
 */
 
 // "8 A", "8A ", "8-a" → "8A" gibi tek anahtar haline getir
@@ -619,88 +620,68 @@ function normalizeClassKey(str) {
     .toString()
     .trim()
     .toUpperCase()
-    .replace(/\s+/g, "")       // tüm boşlukları kaldır
-    .replace(/[^0-9A-ZĞÜŞİÖÇ]/g, ""); // harf/rakam dışını temizle
+    .replace(/\s+/g, "")               // tüm boşlukları kaldır
+    .replace(/[^0-9A-ZĞÜŞİÖÇ]/g, "");  // harf/rakam dışını temizle
 }
 
-// Birbirinden olabildiğince farklı 12 ana renk
+// 32 pastel ama bariz farklı renk
 const CLASS_COLOR_PALETTE = [
-  "hsl(0,   65%, 80%)",  // pastel kırmızı
-  "hsl(11,  65%, 80%)",  // pastel mercan
-  "hsl(22,  65%, 80%)",  // pastel turuncu
-  "hsl(34,  65%, 80%)",  // pastel turuncu-sarı
-  "hsl(45,  65%, 80%)",  // pastel sarı
-  "hsl(56,  65%, 80%)",  // pastel limon
-  "hsl(68,  65%, 80%)",  // pastel sarı-yeşil
-  "hsl(79,  65%, 80%)",  // pastel açık yeşil
-  "hsl(90,  65%, 80%)",  // pastel yeşil
-  "hsl(101, 65%, 80%)",  // pastel çim yeşili
-  "hsl(112, 65%, 80%)",  // pastel zümrüt
-  "hsl(124, 65%, 80%)",  // pastel mavi-yeşil
-  "hsl(135, 65%, 80%)",  // pastel teal
-  "hsl(146, 65%, 80%)",  // pastel camgöbeği
-  "hsl(158, 65%, 80%)",  // pastel aqua
-  "hsl(169, 65%, 80%)",  // pastel deniz mavisi
-  "hsl(180, 65%, 80%)",  // pastel turkuaz
-  "hsl(191, 65%, 80%)",  // pastel açık mavi
-  "hsl(202, 65%, 80%)",  // pastel mavi
-  "hsl(214, 65%, 80%)",  // pastel çelik mavi
-  "hsl(225, 65%, 80%)",  // pastel indigo
-  "hsl(236, 65%, 80%)",  // pastel menekşe
-  "hsl(248, 65%, 80%)",  // pastel mor
-  "hsl(259, 65%, 80%)",  // pastel eflatun
-  "hsl(270, 65%, 80%)",  // pastel leylak
-  "hsl(281, 65%, 80%)",  // pastel mor-pembe
-  "hsl(292, 65%, 80%)",  // pastel fuşya
-  "hsl(304, 65%, 80%)",  // pastel sıcak pembe
-  "hsl(315, 65%, 80%)",  // pastel pembe
-  "hsl(326, 65%, 80%)",  // pastel gül kurusu
-  "hsl(338, 65%, 80%)",  // pastel kırmızımsı pembe
-  "hsl(349, 65%, 80%)"   // pastel kırmızıya yakın ton
+  "hsl(0,   70%, 80%)",  // pastel kırmızı
+  "hsl(0,   55%, 65%)",
+  "hsl(30,  70%, 80%)",  // pastel turuncu
+  "hsl(30,  55%, 65%)",
+  "hsl(60,  70%, 80%)",  // pastel sarı
+  "hsl(60,  55%, 65%)",
+  "hsl(90,  70%, 80%)",  // pastel limon / yeşilimsi
+  "hsl(90,  55%, 65%)",
+  "hsl(120, 70%, 80%)",  // pastel yeşil
+  "hsl(120, 55%, 65%)",
+  "hsl(150, 70%, 80%)",  // pastel zümrüt
+  "hsl(150, 55%, 65%)",
+  "hsl(180, 70%, 80%)",  // pastel camgöbeği
+  "hsl(180, 55%, 65%)",
+  "hsl(210, 70%, 80%)",  // pastel mavi
+  "hsl(210, 55%, 65%)",
+  "hsl(240, 70%, 80%)",  // pastel lacivert/morumsu mavi
+  "hsl(240, 55%, 65%)",
+  "hsl(270, 70%, 80%)",  // pastel mor
+  "hsl(270, 55%, 65%)",
+  "hsl(300, 70%, 80%)",  // pastel pembe-mor
+  "hsl(300, 55%, 65%)",
+  "hsl(330, 70%, 80%)",  // pastel pembe
+  "hsl(330, 55%, 65%)",
+  "hsl(15,  70%, 80%)",  // araya ek tonlar
+  "hsl(15,  55%, 65%)",
+  "hsl(45,  70%, 80%)",
+  "hsl(45,  55%, 65%)",
+  "hsl(135, 70%, 80%)",
+  "hsl(135, 55%, 65%)",
+  "hsl(195, 70%, 80%)",
+  "hsl(195, 55%, 65%)"
 ];
-
 
 const classColorCache = {};
 
-// Öğrenciler ve sınıflardaki tüm benzersiz sınıf anahtarlarını toplayıp cache'i kur
-function rebuildClassColorCache() {
-  const keysSet = new Set();
-
-  // Öğrencilerden sınıf adları
-  state.students.forEach(s => {
-    const k = normalizeClassKey(s.sinif);
-    if (k) keysSet.add(k);
-  });
-
-  // Sınıf tanımlarından (örneğin "8A Sınıfı" gibi) isimler
-  state.classes.forEach(c => {
-    const k = normalizeClassKey(c.name);
-    if (k) keysSet.add(k);
-  });
-
-  const keys = Array.from(keysSet).sort(); // deterministik olsun
-
-  // Var olan cache bozulmasın; eksik olanlara yeni renk ata
-  keys.forEach((k, idx) => {
-    if (!classColorCache[k]) {
-      const colorIdx = idx % CLASS_COLOR_PALETTE.length;
-      classColorCache[k] = CLASS_COLOR_PALETTE[colorIdx];
-    }
-  });
+// Sınıf ismini palette 0–31 arası indexe map eden deterministik hash
+function classColorIndexFromKey(key) {
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) | 0; // 32-bit int
+  }
+  if (hash < 0) hash = -hash;
+  return hash % CLASS_COLOR_PALETTE.length;
 }
 
-// Dışarıdan kullanılan tek fonksiyon
+// Dışarıdan kullanılan fonksiyon
 function getClassColor(str) {
   const key = normalizeClassKey(str);
-  if (!key) return "#ccc";
+  if (!key) return "#cccccc";
 
-  // Eğer bu anahtar için henüz renk yoksa, cache'i mevcut verilere göre yeniden kur
   if (!classColorCache[key]) {
-    rebuildClassColorCache();
+    const idx = classColorIndexFromKey(key);
+    classColorCache[key] = CLASS_COLOR_PALETTE[idx];
   }
-
-  // Hâlâ yoksa (veri çok erken bir aşamadaysa) gri ver
-  return classColorCache[key] || "#ccc";
+  return classColorCache[key];
 }
 
 
@@ -1351,6 +1332,7 @@ function initApp(){
 
 </body>
 </html>
+
 
 
 
